@@ -17,7 +17,10 @@ prog: passthrough.bitstream
 	sudo --preserve-env=PATH env openocd -f ./ecp5.cfg -c "transport select jtag; init; svf passthrough.svf; exit"
 
 clean:
-	rm led.o
-	rm led
+	-rm -fr led.o
+	-rm -fr led
+	-rm -fr passthrough.bit passthrough.json passthrough.svf passthrough_out.config
+
+
 
 .PHONY: passthrough.json
