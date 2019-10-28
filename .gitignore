@@ -1,1 +1,6 @@
 led
+*.o
+passthrough.bit
+passthrough.json
+passthrough.svf
+passthrough_out.config
