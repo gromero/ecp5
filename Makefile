@@ -21,6 +21,4 @@ clean:
 	-rm -fr led
 	-rm -fr passthrough.bit passthrough.json passthrough.svf passthrough_out.config
 
-
-
 .PHONY: passthrough.json
