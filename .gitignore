@@ -5,3 +5,7 @@ passthrough.bit
 passthrough.json
 passthrough.svf
 passthrough_out.config
+main.bit
+main.json
+main.svf
+main_out.config
