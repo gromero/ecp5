@@ -1,4 +1,5 @@
 led
+fifo
 *.o
 passthrough.bit
 passthrough.json

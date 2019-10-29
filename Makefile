@@ -4,6 +4,9 @@ CC_FLAGS=-lwiringPi
 led:	led.o
 	$(CC) led.c -o led $(CC_FLAGS)
 
+fifo:	fifo.c
+	$(CC) fifo.c -o fifo $(CC_FLAGS)
+
 passthrough.json: passthrough.v
 	yosys -p "synth_ecp5 -json $@" $<
 
@@ -20,5 +23,6 @@ clean:
 	-rm -fr led.o
 	-rm -fr led
 	-rm -fr passthrough.bit passthrough.json passthrough.svf passthrough_out.config
+	-rm -fr fifo.o fifo
 
 .PHONY: passthrough.json
