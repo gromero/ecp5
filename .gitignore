@@ -3,8 +3,7 @@ fifo
 *.o
 passthrough.bit
 passthrough.svf
-passthrough_out.config
+*.config
 main.bit
 main.svf
-main_out.config
 *.json
