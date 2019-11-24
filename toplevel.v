@@ -16,7 +16,7 @@ module toplevel(input ref_clk, input reset_n,
 // 26 - 26 = 4 unused RPi3 pins
 
 wire reset;
-assign reset = ~reset_n; // botton pressed is '0', but reset is '1'
+assign reset = ~reset_n; // button pressed is '0', but reset is '1'
 
 uart serial0(
   .clk(ref_clk),          // reference clock = 12 MHz
