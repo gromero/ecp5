@@ -10,7 +10,7 @@ module toplevel(input ref_clk, input reset_n,
             input cs,
             output ack, // NC
             output [7:0] led,
-	    input [3:0] notused);
+	    input [3:0] unused);
 
 // 2 + 8 + 8 + 3  = 18 + 3 = 21
 // 26 - 26 = 4 unused RPi3 pins
