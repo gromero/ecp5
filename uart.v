@@ -30,8 +30,11 @@ reg uart_clock = LOW;
 reg [7:0] tx_clock_counter = 0;
 reg tx_clock = LOW;
 
-reg push_data;
-reg pop_data;
+wire tx_buffer_pop;
+wire tx_buffer_push;
+
+wire rx_buffer_pop;
+wire rx_buffer_push;
 
 wire [7:0] tx_fifo_data_in;
 wire [7:0] tx_fifo_data_out;
@@ -45,16 +48,16 @@ localparam READ_ACK = 2'b01;
 localparam WRITE_ACK = 2'b10;
 reg [1:0] wb_state = IDLE;
 
-/*********************
-  wishbone interface
-**********************/
+/************************
+ *  Wishbone Interface  *
+ ************************/
 
 always @ (posedge wb_clk) begin
   if (reset == 1'b1) begin
     wb_ack = 0;
     wb_state = IDLE;
-    push_data = 0;
-    pop_data = 0;
+    tx_buffer_push_data = 0;
+    rx_buffer_pop_data = 0;
   end
   else
     if (wb_state == IDLE) begin
@@ -64,7 +67,7 @@ always @ (posedge wb_clk) begin
           case (wb_addr)
   	    TX_DATA_ADDR : begin
                              tx_fifo_data_in = wb_data_in;
-                             push_data = HIGH;
+                             tx_buffer_push = HIGH;
                            end
             FREQ_DIV_ADDR: freq_divider = wb_data_in; 
   	  endcase
@@ -76,7 +79,7 @@ always @ (posedge wb_clk) begin
           case (wb_addr)
             RX_DATA_ADDR: begin
                             wb_data_out = rx_fifo_data_out;
-                            pop_data = HIGH;
+                            rx_buffer_pop = HIGH;
                           end
           endcase
           wb_state = READ_ACK;
@@ -85,7 +88,7 @@ always @ (posedge wb_clk) begin
       end
     /* write ack */
     else if (wb_state == WRITE_ACK) begin
-      push_data = LOW;
+      tx_buffer_push = LOW;
       if (wb_stb == LOW) begin
         wb_state = IDLE;
         wb_ack = LOW;
@@ -93,7 +96,7 @@ always @ (posedge wb_clk) begin
     end
     /* read ack */
     else if (wb_state == READ_ACK) begin
-      pop_data = LOW;
+      rx_buffer_pop = LOW;
       if (wb_stb == LOW) begin
         wb_state = IDLE;
         wb_ack = LOW;
@@ -113,6 +116,7 @@ reg [1:0] tx_state = IDLE;
 reg [2:0] tx_bit_counter = 0;
 
 wire tx_fifo_empty;
+reg tx_fifo_full; // NC
 
 /*************
  *  TX FIFO  *
@@ -125,7 +129,7 @@ fifo tx_fifo0(
   .pop(pop_data),
   .data_in(tx_fifo_data_in),
   .data_out(tx_fifo_data_out),
-  .full(wb_ack), // XXX: current 'full' line from FIFO is wrongly routed to wb_ack just to attached to some pin
+  .full(tx_fifo_full), // XXX: 'full' flag is not connected
   .empty(tx_fifo_empty));
 
 always @ (posedge clk) begin
