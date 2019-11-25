@@ -1,5 +1,6 @@
 led
 fifo
+uart
 *.o
 passthrough.bit
 passthrough.svf

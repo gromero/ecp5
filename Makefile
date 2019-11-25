@@ -7,6 +7,9 @@ led:	led.o
 fifo:	fifo.c
 	$(CC) fifo.c -o fifo $(CC_FLAGS)
 
+uart:	uart.c
+	$(CC) uart.c -o uart $(CC_FLAGS)
+
 passthrough.json: passthrough.v
 	yosys -p "synth_ecp5 -json $@" $<
 
