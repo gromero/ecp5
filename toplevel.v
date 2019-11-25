@@ -10,10 +10,10 @@ module toplevel(input ref_clk, input reset,
             input cs,
             output ack, // NC
             output [7:0] led,
-	    input [3:0] unused);
+	    input [2:0] unused);
 
-// 2 + 8 + 8 + 3  = 18 + 3 = 21
-// 26 - 26 = 4 unused RPi3 pins
+// 1 + 2 + 8 + 8 + 4  = 23
+// 26 - 23 = 3 unused RPi3 pins
 
 // wire reset;
 // assign reset = ~reset_n; // button pressed is '0', but reset is '1'
