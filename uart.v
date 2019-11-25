@@ -48,7 +48,7 @@ wire [7:0] tx_fifo_data_in;
 wire [7:0] tx_fifo_data_out;
 
 wire [7:0] rx_fifo_data_in;
-wire [7:0] rX_fifo_data_out;
+wire [7:0] rx_fifo_data_out;
 
 // FSM states: idle, read_ack, write_ack
 localparam IDLE = 2'b00;
