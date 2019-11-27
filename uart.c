@@ -73,12 +73,12 @@ int get(int pin) {
   return digitalRead(pin);
 }
 
-void setAddr(int addr) {
+void setAddr(int a) {
   int i;
   int bit;
 
   for (i = 0; i < ADDR_BUS_SIZE; i++) {
-   bit = (addr >> i) & 0x1;
+   bit = (a >> i) & 0x1;
    digitalWrite(addr[i], bit);
   }
 }
