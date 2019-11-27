@@ -120,7 +120,7 @@ int setupPins(void) {
   pinMode(WE, OUTPUT);
   pinMode(CLK, OUTPUT);
   pinMode(CS, OUTPUT);
-  pinMode(ACK, OUTPUT);
+  pinMode(ACK, INPUT);
 
   pinMode(DATA_OUT0, OUTPUT);
   pinMode(DATA_OUT1, OUTPUT);
@@ -163,9 +163,10 @@ int main(void) {
   clock();
   unset(RESET);
 
-  printf("ACK: %d\n", get(ACK));
 
 loop:
+  printf("ACK: %d\n", get(ACK));
+
   setAddr(TX_ADDR);
   dataOut('a');
   set(CS);
