@@ -1,6 +1,8 @@
 CC=g++
 CC_FLAGS=-lwiringPi
 
+all:	led fifo uart
+
 led:	led.o
 	$(CC) led.c -o led $(CC_FLAGS)
 
