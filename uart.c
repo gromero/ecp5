@@ -163,14 +163,16 @@ int main(void) {
   clock();
   unset(RESET);
 
-
 loop:
   printf("ACK: %d\n", get(ACK));
 
   setAddr(TX_ADDR);
   dataOut('a');
   set(CS);
-  set(WE);
+  unset(WE); // !WE => write
+  clock();
+
+  unset(CS); // get ACK set
   clock();
 
   delay(DELAY);
