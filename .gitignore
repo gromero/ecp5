@@ -2,9 +2,8 @@ led
 fifo
 uart
 *.o
-passthrough.bit
-passthrough.svf
 *.config
-main.bit
-main.svf
+*.bit
+*.svf
 *.json
+*.vcd
