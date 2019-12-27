@@ -1,4 +1,4 @@
-module raw_serial(input clk, output reg txd);
+module raw_serial(input clk, output txd);
 
 reg [7:0] counter = 0;
 wire tx_clk;
@@ -6,6 +6,7 @@ wire tx_clk;
 reg [1:0] state = 0;
 reg [7:0] byte = 65; // 'A'
 reg [2:0] bitz = 0;
+reg txd = 1;
 
 always @ (posedge clk) begin
   if (counter == 103) begin
