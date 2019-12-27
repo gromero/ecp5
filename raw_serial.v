@@ -9,6 +9,7 @@ reg [2:0] bitz = 0;
 reg txd = 1;
 
 always @ (posedge clk) begin
+  // 12 MHz (master clock) / 104 = 115200 bps (tx_clk)
   if (counter == 103) begin
     counter = 0;
     tx_clk = 1;
