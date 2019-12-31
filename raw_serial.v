@@ -1,6 +1,6 @@
 module raw_serial(input clk, output txd);
 
-reg [7:0] counter = 0;
+reg [9:0] counter = 0;
 wire tx_clk;
 
 reg [1:0] state = 0;
@@ -9,8 +9,8 @@ reg [2:0] bitz = 0;
 reg txd = 1;
 
 always @ (posedge clk) begin
-  // 12 MHz (master clock) / 104 = 115200 bps (tx_clk)
-  if (counter == 103) begin
+  // 12 MHz (master clock) / 625 = 19200 bps (tx_clk)
+  if (counter == 624) begin
     counter = 0;
     tx_clk = 1;
   end else begin
