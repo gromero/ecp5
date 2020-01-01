@@ -10,6 +10,7 @@ reg txd = 1;
 
 always @ (posedge clk) begin
   // 12 MHz (master clock) / 625 = 19200 bps (tx_clk)
+  // adjust counter == 103 to generate 115200 bps
   if (counter == 624) begin
     counter = 0;
     tx_clk = 1;
