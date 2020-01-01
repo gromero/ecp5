@@ -2,7 +2,7 @@
 
 #### Motivation
 
-![ECP5 Evaluation Board](http://www.latticesemi.com/-/media/LatticeSemi/Documents/UserManuals/EI2/FPGA-EB-02017-1-0-ECP5-Evaluation-Board.ashx?document_id=52479) has a FT2232H IC that provides two USB channels: A and B. Channel A is used
+[ECP5 Evaluation Board](http://www.latticesemi.com/-/media/LatticeSemi/Documents/UserManuals/EI2/FPGA-EB-02017-1-0-ECP5-Evaluation-Board.ashx?document_id=52479) has a FT2232H IC that provides two USB channels: A and B. Channel A is used
 to program the FPGA by tools like _OpenOCD_. Channel B, by its turn, although
 not configured as a VCP (Virtual COM Port) can be used as a standart serial
 port. Configuring channel B as serial port 1 (to appear as `/dev/ttyUSB1` on
@@ -20,13 +20,13 @@ can be read from `/dev/ttyUSB1`.
   User Guide). That will connect channel B TXD and RXD to the FPGA
 - Solder a jumper wire or a 0 ohm resistor at R21. This is for green LED D1 to
   blink when pin RXD (data from FPGA to FT2232) is toggled
-- Download ![FT_PROG](https://www.ftdichip.com/Support/Utilities.htm#FT_PROG)
+- Download [FT_PROG](https://www.ftdichip.com/Support/Utilities.htm#FT_PROG)
   (sorry, not sure if there is a way to avoid Windows using any alternative)
 - Connect the ECP5 board to the USB port and once in the *FT_PROG*, go to
   Channel B settings (in Hardware) and select "RS232 Protocol", then click on
   _ray icon_ to make the change effective. Board can be disconnect after it.
-- Now attach the board again to Linux box and using ![raw_serial.sh](raw_serial.sh),
-  burn ![raw_serial.v](raw_serial.v) into ECP5 board
-- After ![raw_serial.v](raw_serial.v) is burned into the FPGA, you should open
+- Now attach the board again to Linux box and using [raw_serial.sh](raw_serial.sh),
+  burn [raw_serial.v](raw_serial.v) into ECP5 board
+- After [raw_serial.v](raw_serial.v) is burned into the FPGA, you should open
   `/dev/ttyUSB1`(using Minicom, for instance) and voilà you should see a bunch
   of 'A's printed out to the terminal
