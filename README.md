@@ -30,3 +30,5 @@ can be read from `/dev/ttyUSB1`.
 - After [raw_serial.v](raw_serial.v) is burned into the FPGA, you should open
   `/dev/ttyUSB1`(using Minicom, for instance) and voilà you should see a bunch
   of 'A's printed out to the terminal
+
+---
