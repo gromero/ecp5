@@ -3,7 +3,7 @@
 ## Figure 1
 
 <p align="center">
-  <img width="100" height="100" src="Arduino_115200_8N1_wave.jpg">
+  <img width="320" height="240" src="Arduino_115200_8N1_wave.jpg">
 </p>
 
 ![Oscilloscope-taken 115200 8N1 wave from Arduino TX serial pin](Arduino_115200_8N1_wave.jpg)
