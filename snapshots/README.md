@@ -1,7 +1,7 @@
-== Index ==
+## Index
 
-> Oscilloscope-taken 115200 8N1 wave from Arduino TX serial pin
 ![Oscilloscope-taken 115200 8N1 wave from Arduino TX serial pin](Arduino_115200_8N1_wave.jpg)
+Oscilloscope-taken 115200 8N1 wave from Arduino TX serial pin
 
 > Oscilloscope-taken 115200 8N1 wave from ECP5 FPGA before it reaches out FT2232H RXD pin
 ![Oscilloscope-taken 115200 8N1 wave from ECP5 FPGA before it reaches out FT2232H RXD pin](FPGA_ECP5_115200_8N1_wave.jpg)
