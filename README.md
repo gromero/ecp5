@@ -3,9 +3,9 @@
 #### Motivation
 
 [ECP5 Evaluation Board](http://www.latticesemi.com/-/media/LatticeSemi/Documents/UserManuals/EI2/FPGA-EB-02017-1-0-ECP5-Evaluation-Board.ashx?document_id=52479) has a FT2232H IC that provides two USB channels: A and B. Channel A is used
-to program the FPGA by tools like _OpenOCD_. Channel B, by its turn, although
+to program the FPGA by tools like OpenOCD. Channel B, by its turn, although
 not configured as a VCP (Virtual COM Port) can be used as a standart serial
-port. Configuring channel B as serial port 1 (to appear as `/dev/ttyUSB1` on
+port. Configuring channel B as *serial port 1* (to appear as `/dev/ttyUSB1` on
 Linux) is convenient specially because it can be used as a debug port for the
 ECP5 FPGA. Hence this recipe provides the steps necessary to setup channel B as
 serial port 1 plus a trivial example using Verilog HDL code to generate a proper
@@ -25,7 +25,7 @@ can be read from `/dev/ttyUSB1`.
 - Connect the ECP5 board to the USB port and once in the *FT_PROG*, go to
   Channel B settings (in Hardware) and select "RS232 Protocol", then click on
   _ray icon_ to make the change effective. Board can be disconnect after it.
-- Now attach the board again to Linux box and using [raw_serial.sh](raw_serial.sh),
+- Now attach the board again to the Linux box and using [raw_serial.sh](raw_serial.sh),
   burn [raw_serial.v](raw_serial.v) into ECP5 board
 - After [raw_serial.v](raw_serial.v) is burned into the FPGA, you should open
   `/dev/ttyUSB1`(using Minicom, for instance) and voilà you should see a bunch
