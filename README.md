@@ -8,7 +8,7 @@ to program the FPGA by tools like [OpenOCD](http://openocd.org/). Channel B, by
 its turn, although not configured as a VCP (Virtual COM Port) can be used as a
 standart serial port. Configuring channel B as *serial port 1* (to appear as
 `/dev/ttyUSB1` on Linux) is convenient specially because it can be used as a
-debug port for the ECP5 FPGA. Hence this recipe provides the steps necessary to
+debug port for the ECP5 FPGA. This recipe provides the steps necessary to
 setup channel B as serial port 1 plus a trivial example using Verilog HDL code
 to generate a proper serial signal at 115200 8N1 transmitting character 'A'
 through the wire so it can be read from `/dev/ttyUSB1`.
