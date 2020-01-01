@@ -22,7 +22,7 @@
 
 ---
 
-#### Arduino IDE displaying 'A' sequence poured out of ECP5 using raw_serial.v code
+#### Arduino IDE displaying 'A' sequence poured out of ECP5 using raw_serial.v code at 115200 8N1
 <p align="center">
   <img width="320" height="240" src="Arduino_IDE_read_output_from_FPGA.jpg">
 </p>
