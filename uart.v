@@ -143,10 +143,11 @@ fifo tx_fifo0(
 always @ (posedge clk) begin
   if (reset == 1'b1) begin
     tx_bit = 1'b1; // tx idle bit
-    pop_data = 0'b0;
+    pop_data = 1'b0;
     tx_state = IDLE;
   end else begin
     case (tx_state)
+
       IDLE:
       if (tx_clock == 1'b01 && tx_fifo_empty != 1'b01) begin
         tx_bit = 1'b0;   // tx start bit
