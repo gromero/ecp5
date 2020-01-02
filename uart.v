@@ -149,7 +149,7 @@ always @ (posedge clk) begin
     case (tx_state)
 
       IDLE:
-      if (tx_clock == 1'b01 && tx_fifo_empty != 1'b01) begin
+      if (tx_clock == 1'b1 && tx_fifo_empty != 1'b1) begin
         tx_bit = 1'b0;   // tx start bit
         pop_data = 1'b1; // pop byte
         tx_state = SEND;
@@ -159,7 +159,7 @@ always @ (posedge clk) begin
       end
 
       SEND:
-      if (tx_clock == 1'b01 && tx_bit_counter <= 7) begin
+      if (tx_clock == 1'b1 && tx_bit_counter <= 7) begin
         tx_bit = tx_fifo_data_out[tx_bit_counter]; // tx data bit
         tx_bit_counter = tx_bit_counter + 1;
       end else begin
@@ -168,7 +168,7 @@ always @ (posedge clk) begin
       end
 
       STOP:
-      if (tx_clock == 1'b01) begin
+      if (tx_clock == 1'b1) begin
         tx_bit = 1'b1; // tx stop bit
         tx_state = IDLE;
       end
