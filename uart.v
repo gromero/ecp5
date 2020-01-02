@@ -183,8 +183,8 @@ end
 //
 // N.B.: freq_divisor should account for making uart_clock 16x faster than baud
 // rate, so uart_clock / 16 can give the correct tx and rx freq. This is
-// specially usuful on rx code because we use 8 uart_clock cycles to sample
-// right "in the middle" of tx_clock by delaying 8 cycles.
+// specially useful on RX code because we use a 8 uart_clock delay to sample
+// right in the middle of receiving signal.
 always @ (posedge clk) begin
   if (reset == HIGH) begin
     freq_counter = 0;

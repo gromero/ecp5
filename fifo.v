@@ -15,7 +15,7 @@ output full;
 output empty;
 
 input [7:0] data_in;
-output[7:0] data_out;
+output [7:0] data_out;
 
 input push;
 input pop;
