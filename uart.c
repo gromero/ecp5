@@ -173,7 +173,7 @@ loop:
   printf("ACK: %d\n", get(ACK));
 
   setAddr(TX_ADDR);
-  dataOut('a');
+  dataOut('A');
   set(CS);
   unset(WE); // !WE => write
   clock();
