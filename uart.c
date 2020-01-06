@@ -162,7 +162,13 @@ int main(void) {
   set(RESET);
   clock();
   unset(RESET);
-
+/*
+  setAddr(FREQ_DIV);
+  dataOut(0xFF);
+  set(CS);
+  unset(WE); // !WE => write
+  clock();
+*/
 loop:
   printf("ACK: %d\n", get(ACK));
 
