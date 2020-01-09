@@ -2,29 +2,10 @@
 
 module uart_sim_tl;
 
-/*
-module toplevel(input ref_clk, input reset,
-            output tx_pin, input rx_pin,
-            input [1:0] addr,
-            input [7:0] data_in,
-            output [7:0] data_out,
-            input we,
-            input clk,
-            input cs,
-            output ack, // NC
-            output [7:0] led,
-	    input [2:0] unused);
-*/
-// 1 + 2 + 8 + 8 + 4  = 23
-// 26 - 23 = 3 unused RPi3 pins
-
-// wire reset;
-// assign reset = ~reset_n; // button pressed is '0', but reset is '1'
-
 reg master_clock = 0;
 reg wb_clock = 0;
 always #1 master_clock = !master_clock;
-always #3 wb_clock = !master_clock;
+always #1 wb_clock = !wb_clock;
 
 reg rst;
 wire txd;
@@ -50,27 +31,16 @@ wire ack_bit;
   end
 
 uart serial0(
-  .clk(master_clock),          // reference clock = 12 MHz
-  .reset(rst),          // 1 => reset
-  .tx_bit(txd),        // TX UART pin
-  .rx_bit(rxd),	  // RX UART pin
-  .wb_addr(data_addr),         // data address
+  .clk(master_clock),     // reference clock = 12 MHz
+  .reset(rst),            // 1 => reset
+  .tx_bit(txd),           // TX UART pin
+  .rx_bit(rxd),	          // RX UART pin
+  .wb_addr(data_addr),    // data address
   .wb_data_in(data_in),   // data in bus
   .wb_data_out(data_out), // data out bus
   .wb_we(we),             // read/write bit, only write is current supported
-  .wb_clk(wb_clock),           // bus clock
+  .wb_clk(wb_clock),      // bus clock
   .wb_stb(cs),            // chip select
-  .wb_ack(ack_bit));          // ACK, currently not used
-
-/*
-assign led[1:0] = addr[1:0];
-assign led[2]   = we;
-assign led[3]   = clk;
-assign led[4]   = cs;
-assign led[5]   = tx_bit;
-assign led[6]   = rx_bit;
-assign led[7]   = ack;
-*/
-// assign unused = z;
+  .wb_ack(ack_bit));      // ACK, currently not used
 
 endmodule
