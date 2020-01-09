@@ -38,15 +38,13 @@ reg uart_clock = LOW;
 reg [7:0] tx_clock_counter = 0;
 reg tx_clock = LOW;
 
-reg tx_buffer_pop;
-reg tx_buffer_push;
-
-reg rx_buffer_pop;
-wire rx_buffer_push;
-
+reg tx_fifo_pop;
+reg tx_fifo_push;
 reg [7:0] tx_fifo_data_in;
 wire [7:0] tx_fifo_data_out;
 
+reg rx_fifo_pop;
+wire rx_fifo_push;
 wire [7:0] rx_fifo_data_in;
 wire [7:0] rx_fifo_data_out;
 
@@ -64,8 +62,8 @@ always @ (posedge wb_clk) begin
   if (reset == 1'b1) begin
     wb_ack = 0;
     wb_state = IDLE;
-    tx_buffer_push_data = 0;
-    rx_buffer_pop_data = 0;
+    tx_fifo_push = 0;
+    rx_fifo_pop = 0;
   end
   else
     if (wb_state == IDLE) begin
@@ -75,7 +73,7 @@ always @ (posedge wb_clk) begin
           case (wb_addr)
   	    TX_DATA_ADDR : begin
                              tx_fifo_data_in = wb_data_in;
-                             tx_buffer_push = HIGH;
+                             tx_fifo_push = HIGH;
                            end
             FREQ_DIV_ADDR: freq_divider = wb_data_in; 
   	  endcase
@@ -87,7 +85,7 @@ always @ (posedge wb_clk) begin
           case (wb_addr)
             RX_DATA_ADDR: begin
                             wb_data_out = rx_fifo_data_out;
-                            rx_buffer_pop = HIGH;
+                            rx_fifo_pop = HIGH;
                           end
           endcase
           wb_state = READ_ACK;
@@ -96,7 +94,7 @@ always @ (posedge wb_clk) begin
       end
     /* write ack */
     else if (wb_state == WRITE_ACK) begin
-      tx_buffer_push = LOW;
+      tx_fifo_push = LOW;
       if (wb_stb == LOW) begin
         wb_state = IDLE;
         wb_ack = LOW;
@@ -104,7 +102,7 @@ always @ (posedge wb_clk) begin
     end
     /* read ack */
     else if (wb_state == READ_ACK) begin
-      rx_buffer_pop = LOW;
+      rx_fifo_pop = LOW;
       if (wb_stb == LOW) begin
         wb_state = IDLE;
         wb_ack = LOW;
@@ -130,13 +128,11 @@ reg tx_fifo_full; // NC
  *  TX FIFO  *
  *************/
 
-reg pop_data;
-
 fifo tx_fifo0(
   .clk(clk),
   .reset(reset),
-  .push(push_data),
-  .pop(pop_data),
+  .push(tx_fifo_push),
+  .pop(tx_fifo_pop),
   .data_in(tx_fifo_data_in),
   .data_out(tx_fifo_data_out),
   .full(tx_fifo_full), // XXX: 'full' flag is not connected
@@ -145,7 +141,7 @@ fifo tx_fifo0(
 always @ (posedge clk) begin
   if (reset == 1'b1) begin
     tx_bit = 1'b1; // tx idle bit
-    pop_data = 1'b0;
+    tx_fifo_pop = 1'b0;
     tx_state = IDLE;
   end else begin
     case (tx_state)
@@ -153,11 +149,11 @@ always @ (posedge clk) begin
       IDLE:
       if (tx_clock == 1'b1 && tx_fifo_empty != 1'b1) begin
         tx_bit = 1'b0;   // tx start bit
-        pop_data = 1'b1; // pop byte
+        tx_fifo_pop = 1'b1; // pop byte
         tx_state = SEND;
       end else begin
         tx_bit = 1'b1;   // tx idle bit
-        pop_data = 1'b0; // don't pop
+        tx_fifo_pop = 1'b0; // don't pop
       end
 
       SEND:
