@@ -21,8 +21,8 @@ module toplevel(input ref_clk, input reset,
 // wire reset;
 // assign reset = ~reset_n; // button pressed is '0', but reset is '1'
 
-reg master_clock;
-reg wb_clock;
+reg master_clock = 0;
+reg wb_clock = 0;
 always #1 master_clock = !master_clock;
 always #3 wb_clock = !master_clock;
 
