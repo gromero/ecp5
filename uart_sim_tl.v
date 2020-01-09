@@ -19,14 +19,14 @@ wire ack_bit;
 
   initial begin
     $dumpfile("uart_dumpfile.vcd");
-    $dumpvars(1, serial0);
+    $dumpvars(0, serial0, serial0.tx_fifo0);
     #0 rst = 0;
     #0 data_addr = 0;
     #0 data_in = 65;
     #0 rst = 1;
-    #0 cs = 0;
+    #0 cs = 1;
     #0 we = 0;
-    #5 rst = 0; // off reset
+    #1 rst = 0; // off reset
     #10000 $stop;
   end
 
