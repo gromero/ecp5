@@ -42,7 +42,7 @@ wire ack_bit;
     $dumpvars;
     #0 rst = 0;
     #1 data_addr = 0;
-    #2 data_out = 65;
+    #2 data_in = 65;
     #3 rst = 1;
     #2000 $stop;
   end
