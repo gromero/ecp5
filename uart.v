@@ -8,14 +8,14 @@
  ****************************************/
 
 module uart(input clk, input reset,
-            output tx_bit, input rx_bit,
+            output reg tx_bit, input rx_bit,
             input [1:0] wb_addr,
             input [7:0] wb_data_in,
-            output [7:0] wb_data_out,
+            output reg [7:0] wb_data_out,
             input wb_we,
             input wb_clk,
             input wb_stb,
-            output wb_ack);
+            output reg wb_ack);
 
 localparam TX_DATA_ADDR = 2'b00;
 localparam RX_DATA_ADDR = 2'b01;
@@ -38,13 +38,13 @@ reg uart_clock = LOW;
 reg [7:0] tx_clock_counter = 0;
 reg tx_clock = LOW;
 
-wire tx_buffer_pop;
-wire tx_buffer_push;
+reg tx_buffer_pop;
+reg tx_buffer_push;
 
-wire rx_buffer_pop;
+reg rx_buffer_pop;
 wire rx_buffer_push;
 
-wire [7:0] tx_fifo_data_in;
+reg [7:0] tx_fifo_data_in;
 wire [7:0] tx_fifo_data_out;
 
 wire [7:0] rx_fifo_data_in;
@@ -129,6 +129,8 @@ reg tx_fifo_full; // NC
 /*************
  *  TX FIFO  *
  *************/
+
+reg pop_data;
 
 fifo tx_fifo0(
   .clk(clk),
