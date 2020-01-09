@@ -11,8 +11,8 @@ localparam LOW = 1'b0;
 input clk;
 input reset;
 
-output full;
-output empty;
+output reg full;
+output reg empty;
 
 input [7:0] data_in;
 output reg [7:0] data_out;
