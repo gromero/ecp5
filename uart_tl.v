@@ -33,18 +33,20 @@ reg [1:0] data_addr;
 reg [7:0] data_in;
 wire [7:0] data_out;
 reg we;
-reg clk;
 reg cs;
 wire ack_bit;
 
   initial begin
     $dumpfile("uart_dumpfile.vcd");
-    $dumpvars;
+    $dumpvars(1, serial0);
     #0 rst = 0;
-    #1 data_addr = 0;
-    #2 data_in = 65;
-    #3 rst = 1;
-    #2000 $stop;
+    #0 data_addr = 0;
+    #0 data_in = 65;
+    #0 rst = 1;
+    #0 cs = 0;
+    #0 we = 0;
+    #5 rst = 0; // off reset
+    #10000 $stop;
   end
 
 uart serial0(
@@ -56,7 +58,7 @@ uart serial0(
   .wb_data_in(data_in),   // data in bus
   .wb_data_out(data_out), // data out bus
   .wb_we(we),             // read/write bit, only write is current supported
-  .wb_clk(clk),           // bus clock
+  .wb_clk(wb_clock),           // bus clock
   .wb_stb(cs),            // chip select
   .wb_ack(ack_bit));          // ACK, currently not used
 
