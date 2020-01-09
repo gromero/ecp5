@@ -27,7 +27,7 @@ always #1 master_clock = !master_clock;
 always #3 wb_clock = !master_clock;
 
 reg rst;
-reg txd;
+wire txd;
 output wire rxd;
 reg [1:0] data_addr;
 reg [7:0] data_in;
