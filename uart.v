@@ -122,7 +122,7 @@ reg [1:0] tx_state = IDLE;
 reg [2:0] tx_bit_counter = 0;
 
 wire tx_fifo_empty;
-reg tx_fifo_full; // NC
+wire tx_fifo_full; // NC
 
 /*************
  *  TX FIFO  *
