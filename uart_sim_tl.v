@@ -1,6 +1,6 @@
 `include "uart.v"
 
-module uart_sim;
+module uart_sim_tl;
 
 /*
 module toplevel(input ref_clk, input reset,
