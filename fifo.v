@@ -15,7 +15,7 @@ output full;
 output empty;
 
 input [7:0] data_in;
-output [7:0] data_out;
+output reg [7:0] data_out;
 
 input push;
 input pop;
@@ -28,7 +28,7 @@ reg last_op = POP;
 always @ (posedge clk) begin
 
   if (reset == 1'b1) begin
-    data_out = z;
+    data_out = 1'bz;
     top = 0;
     bottom = 0;
   end
