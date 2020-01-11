@@ -22,7 +22,7 @@ wire ack_bit;
     $dumpvars(0, serial0, serial0.tx_fifo0);
     #0 rst = 0;
     #0 data_addr = 0;
-    #0 data_in = 65;
+    #0 data_in = 67;
     #0 rst = 1;
     #0 cs = 1;
     #0 we = 0;

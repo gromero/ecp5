@@ -92,6 +92,7 @@ always @ (posedge wb_clk) begin
           wb_ack = HIGH;
         end
       end
+    end
     /* write ack */
     else if (wb_state == WRITE_ACK) begin
       tx_fifo_push = LOW;
@@ -108,7 +109,6 @@ always @ (posedge wb_clk) begin
         wb_ack = LOW;
       end
     end // read ack
-  end // wb_state
 end
 
 /******************
@@ -128,6 +128,9 @@ wire tx_fifo_full; // NC
  *  TX FIFO  *
  *************/
 
+reg [7:0] byte = 65; // 'A'
+reg [2:0] bitz = 0;
+
 fifo tx_fifo0(
   .clk(clk),
   .reset(reset),
@@ -139,15 +142,20 @@ fifo tx_fifo0(
   .empty(tx_fifo_empty));
 
 always @ (posedge clk) begin
+/*
   if (reset == 1'b1) begin
     tx_bit = 1'b1; // tx idle bit
     tx_fifo_pop = 1'b0;
     tx_state = IDLE;
-  end else begin
+  end
+*/
+/*
+else begin
     case (tx_state)
 
       IDLE:
-      if (tx_clock == 1'b1 && tx_fifo_empty != 1'b1) begin
+ //   if (tx_clock == 1'b1 && tx_fifo_empty != 1'b1) begin
+      if (tx_clock == 1'b1) begin
         tx_bit = 1'b0;   // tx start bit
         tx_fifo_pop = 1'b1; // pop byte
         tx_state = SEND;
@@ -158,7 +166,7 @@ always @ (posedge clk) begin
 
       SEND:
       if (tx_clock == 1'b1 && tx_bit_counter <= 7) begin
-        tx_bit = tx_fifo_data_out[tx_bit_counter]; // tx data bit
+        tx_bit = !tx_bit;// tx_fifo_data_out[tx_bit_counter]; // tx data bit
         tx_bit_counter = tx_bit_counter + 1;
       end else begin
         tx_bit_counter = 0;
@@ -172,6 +180,47 @@ always @ (posedge clk) begin
       end
     endcase
   end
+*/
+  if (reset == HIGH) begin
+    tx_bit = HIGH; // tx idle bit
+    tx_fifo_pop = LOW;
+    tx_state = 0; // IDLE
+  end
+
+  case (tx_state)
+    0:
+       begin
+	 if (tx_clock == HIGH && tx_fifo_empty == LOW) begin
+           tx_bit = 0; // tx start bit
+           tx_state = 1;
+           bitz = 0;
+   	   tx_fifo_pop = HIGH;
+//         byte = tx_fifo_data_out;
+	 end else begin
+           tx_bit = 1; // tx idle bit
+           tx_fifo_pop = LOW;
+         end
+       end
+
+    1:
+       if (bitz == 7) begin
+//       tx_fifo_pop = HIGH;
+//	 tx_bit = tx_fifo_data_out[bitz];
+         tx_bit = byte[bitz];
+         tx_state = 2;
+       end else begin
+//       tx_fifo_pop = HIGH;
+//       tx_bit = tx_fifo_data_out[bitz];
+         tx_bit = byte[bitz];
+         bitz = bitz + 1;
+       end
+
+    2: 
+       begin
+         tx_bit = 1; // tx stop bit
+         tx_state = 0;
+       end
+  endcase
 end
 
 /**********************
