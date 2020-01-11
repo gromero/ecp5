@@ -75,7 +75,7 @@ always @ (posedge wb_clk) begin
                              tx_fifo_data_in = wb_data_in;
                              tx_fifo_push = HIGH;
                            end
-            FREQ_DIV_ADDR: freq_divider = wb_data_in; 
+            FREQ_DIV_ADDR: freq_divider = wb_data_in;
   	  endcase
           wb_state = WRITE_ACK;
           wb_ack = HIGH;
@@ -141,86 +141,48 @@ fifo tx_fifo0(
   .full(tx_fifo_full), // XXX: 'full' flag is not connected
   .empty(tx_fifo_empty));
 
-always @ (posedge clk) begin
-/*
+always @ (posedge tx_clock) begin
   if (reset == 1'b1) begin
     tx_bit = 1'b1; // tx idle bit
     tx_fifo_pop = 1'b0;
     tx_state = IDLE;
-  end
-*/
-/*
-else begin
+  end else begin
     case (tx_state)
+      0:
+         begin
+           if (tx_fifo_empty == LOW) begin
+             tx_bit = 0; // tx start bit
+             tx_state = 1;
+             bitz = 0;
+             tx_fifo_pop = HIGH;
+//           byte = tx_fifo_data_out;
+           end else begin
+             tx_bit = 1; // tx idle bit
+           end
+         end
 
-      IDLE:
- //   if (tx_clock == 1'b1 && tx_fifo_empty != 1'b1) begin
-      if (tx_clock == 1'b1) begin
-        tx_bit = 1'b0;   // tx start bit
-        tx_fifo_pop = 1'b1; // pop byte
-        tx_state = SEND;
-      end else begin
-        tx_bit = 1'b1;   // tx idle bit
-        tx_fifo_pop = 1'b0; // don't pop
-      end
+      1:
+         if (tx_fifo_pop == HIGH) begin
+           tx_fifo_pop = LOW;
+         end else if (bitz == 7) begin
+//         tx_fifo_pop = HIGH;
+//         tx_bit = tx_fifo_data_out[bitz];
+           tx_bit = byte[bitz];
+           tx_state = 2;
+         end else begin
+//         tx_fifo_pop = HIGH;
+//         tx_bit = tx_fifo_data_out[bitz];
+           tx_bit = byte[bitz];
+           bitz = bitz + 1;
+         end
 
-      SEND:
-      if (tx_clock == 1'b1 && tx_bit_counter <= 7) begin
-        tx_bit = !tx_bit;// tx_fifo_data_out[tx_bit_counter]; // tx data bit
-        tx_bit_counter = tx_bit_counter + 1;
-      end else begin
-        tx_bit_counter = 0;
-        tx_state = STOP;
-      end
-
-      STOP:
-      if (tx_clock == 1'b1) begin
-        tx_bit = 1'b1; // tx stop bit
-        tx_state = IDLE;
-      end
+     2:
+         begin
+           tx_bit = 1; // tx stop bit
+           tx_state = 0;
+         end
     endcase
   end
-*/
-  if (reset == HIGH) begin
-    tx_bit = HIGH; // tx idle bit
-    tx_fifo_pop = LOW;
-    tx_state = 0; // IDLE
-  end
-
-  case (tx_state)
-    0:
-       begin
-	 if (tx_clock == HIGH && tx_fifo_empty == LOW) begin
-           tx_bit = 0; // tx start bit
-           tx_state = 1;
-           bitz = 0;
-   	   tx_fifo_pop = HIGH;
-//         byte = tx_fifo_data_out;
-	 end else begin
-           tx_bit = 1; // tx idle bit
-           tx_fifo_pop = LOW;
-         end
-       end
-
-    1:
-       if (bitz == 7) begin
-//       tx_fifo_pop = HIGH;
-//	 tx_bit = tx_fifo_data_out[bitz];
-         tx_bit = byte[bitz];
-         tx_state = 2;
-       end else begin
-//       tx_fifo_pop = HIGH;
-//       tx_bit = tx_fifo_data_out[bitz];
-         tx_bit = byte[bitz];
-         bitz = bitz + 1;
-       end
-
-    2: 
-       begin
-         tx_bit = 1; // tx stop bit
-         tx_state = 0;
-       end
-  endcase
 end
 
 /**********************
@@ -256,7 +218,7 @@ always @ (posedge clk) begin
   end
   else if (uart_clock == HIGH) begin
     tx_clock_counter = tx_clock_counter + 1;
-    if (tx_clock_counter == 15) begin
+    if (tx_clock_counter == 16) begin
        tx_clock_counter = 0;
        tx_clock = HIGH;
     end
