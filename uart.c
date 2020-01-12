@@ -169,13 +169,13 @@ int main(void) {
   unset(WE); // !WE => write
   clock();
 */
-loop:
+// loop:
   printf("ACK: %d\n", get(ACK));
 
   setAddr(TX_ADDR);
   dataOut('A');
-  set(CS);
   unset(WE); // !WE => write
+  set(CS);
   clock();
 
   unset(CS); // get ACK set
@@ -183,5 +183,5 @@ loop:
 
   delay(DELAY);
 
-  goto loop;
+//  goto loop;
 }
