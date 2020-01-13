@@ -155,7 +155,6 @@ always @ (posedge tx_clock) begin
              tx_state = 1;
              bitz = 0;
              tx_fifo_pop = HIGH;
-//           byte = tx_fifo_data_out;
            end else begin
              tx_bit = 1; // tx idle bit
            end
@@ -166,13 +165,13 @@ always @ (posedge tx_clock) begin
            tx_fifo_pop = LOW;
          end else if (bitz == 7) begin
 //         tx_fifo_pop = HIGH;
-//         tx_bit = tx_fifo_data_out[bitz];
-           tx_bit = byte[bitz];
+           tx_bit = tx_fifo_data_out[bitz];
+//         tx_bit = byte[bitz];
            tx_state = 2;
          end else begin
 //         tx_fifo_pop = HIGH;
-//         tx_bit = tx_fifo_data_out[bitz];
-           tx_bit = byte[bitz];
+           tx_bit = tx_fifo_data_out[bitz];
+//         tx_bit = byte[bitz];
            bitz = bitz + 1;
          end
 
