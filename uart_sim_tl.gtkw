@@ -1,0 +1,50 @@
+[*]
+[*] GTKWave Analyzer v3.3.101 (w)1999-2019 BSI
+[*] Sun Jan 12 11:53:48 2020
+[*]
+[dumpfile] "/home/gromero/git/ecp5/uart_dumpfile.vcd"
+[dumpfile_mtime] "Sun Jan 12 11:20:02 2020"
+[dumpfile_size] 1472727
+[savefile] "/home/gromero/git/ecp5/uart_sim_tl.gtkw"
+[timestart] 14
+[size] 1920 981
+[pos] -1 -1
+*-6.000000 229 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] uart_sim_tl.
+[treeopen] uart_sim_tl.serial0.
+[sst_width] 293
+[signals_width] 230
+[sst_expanded] 1
+[sst_vpaned_height] 273
+@28
+uart_sim_tl.master_clock
+uart_sim_tl.wb_clock
+uart_sim_tl.rst
+uart_sim_tl.data_addr[1:0]
+@22
+uart_sim_tl.data_in[7:0]
+uart_sim_tl.data_out[7:0]
+@28
+uart_sim_tl.we
+uart_sim_tl.cs
+uart_sim_tl.ack_bit
+uart_sim_tl.rxd
+uart_sim_tl.txd
+uart_sim_tl.serial0.tx_bit
+uart_sim_tl.serial0.tx_clock
+uart_sim_tl.serial0.bitz[2:0]
+uart_sim_tl.serial0.tx_fifo_pop
+uart_sim_tl.serial0.tx_fifo_push
+@22
+uart_sim_tl.serial0.byte[7:0]
+uart_sim_tl.serial0.tx_fifo_data_out[7:0]
+uart_sim_tl.serial0.tx_fifo_data_in[7:0]
+@420
+uart_sim_tl.serial0.tx_fifo0.top
+uart_sim_tl.serial0.tx_fifo0.bottom
+@28
+uart_sim_tl.serial0.tx_fifo0.empty
+@29
+uart_sim_tl.serial0.tx_fifo0.full
+[pattern_trace] 1
+[pattern_trace] 0
