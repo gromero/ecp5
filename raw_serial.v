@@ -20,26 +20,31 @@ always @ (posedge clk) begin
   end
 end
 
-always @ (posedge tx_clk) begin
+always @ (posedge clk) begin
   case (state)
     0:
-       begin
-         txd = 0;
-         state = 1;
-         bitz = 0;
-       end
+      if (tx_clk == 1) begin
+        txd = 0;
+        state = 1;
+        bitz = 0;
+      end
+
     1:
-       if (bitz == 7) begin
-         txd = byte[bitz];
-         state = 2;
-       end else begin
-         txd = byte[bitz];
-         bitz = bitz + 1;
-       end
-    2: begin
-         txd = 1;
-	 state = 0;
-       end
+      if (tx_clk == 1) begin
+        if (bitz == 7) begin
+          txd = byte[bitz];
+          state = 2;
+        end else begin
+          txd = byte[bitz];
+          bitz = bitz + 1;
+        end
+      end
+
+    2:
+      if (tx_clk == 1) begin
+        txd = 1;
+        state = 0;
+      end
   endcase
 end
 
