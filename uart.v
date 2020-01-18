@@ -174,7 +174,7 @@ always @ (posedge clk) begin
            bitz = bitz + 1;
          end
 
-     2:
+      2:
          if (tx_clock == HIGH) begin
            tx_bit = HIGH; // tx stop bit
            tx_state = 0;
