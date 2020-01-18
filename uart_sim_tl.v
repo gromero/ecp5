@@ -5,7 +5,7 @@ module uart_sim_tl;
 reg master_clock = 0;
 reg wb_clock = 0;
 always #1 master_clock = !master_clock;
-always #4 wb_clock = !wb_clock;
+// always #4 wb_clock = !wb_clock;
 
 reg rst;
 wire txd;
@@ -20,14 +20,16 @@ wire ack_bit;
   initial begin
     $dumpfile("uart_dumpfile.vcd");
     $dumpvars(0, uart_sim_tl, serial0, serial0.tx_fifo0);
-    #0 data_addr = 0;
-    #0 data_in = 65;
+    #10 data_addr = 0;
+    #10 data_in = 65;
     #0 rst = 1;
     #2 rst = 0; // off reset
-    #4 we = 0;
-    #8 cs = 1;
-    #16 cs = 0; // de select IC
-    #100000 $stop;
+    #2 we = 0;
+    #2 cs = 1;
+    #2 wb_clock = 1;
+    #2 wb_clock = 0;
+    #2 cs = 0; // de select IC
+    #1000 $stop;
   end
 
 uart serial0(
