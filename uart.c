@@ -40,7 +40,7 @@
 #define DATA_IN6 4
 #define DATA_IN7 5
 
-#define DELAY 1000
+#define DELAY 100
 
 int data_out[] = { DATA_OUT0, DATA_OUT1, DATA_OUT2, DATA_OUT3,
                    DATA_OUT4, DATA_OUT5, DATA_OUT6, DATA_OUT7 };
@@ -150,38 +150,35 @@ void prinDatain(int data) {
 int main(void) {
   int r;
   int data_in;
+  char message[] = "Hello cruel world";
+  int i;
+
 
   r = setupPins();
   if (r < 0) {
     printf("Error initializing pins\n");
     exit(1);
-  } else {
-    printf("Pins are initialized\n");
   }
 
   set(RESET);
   clock();
   unset(RESET);
-/*
-  setAddr(FREQ_DIV);
-  dataOut(0xFF);
-  set(CS);
-  unset(WE); // !WE => write
-  clock();
-*/
-// loop:
-  printf("ACK: %d\n", get(ACK));
 
-  setAddr(TX_ADDR);
-  dataOut('A');
-  unset(WE); // !WE => write
-  set(CS);
-  clock();
+//printf("ACK: %d\n", get(ACK));
+loop:
+  for (i = 'a'; i < 'a'+26 ; i++) {
+    setAddr(TX_ADDR);
+    dataOut(i);
+    printf("%c\n", i);
+    unset(WE); // !WE => write
+    set(CS);
+    clock();
+    delay(DELAY);
+  }
+goto loop;
 
   unset(CS); // get ACK set
   clock();
 
-  delay(DELAY);
-
-//  goto loop;
+//delay(DELAY);
 }
