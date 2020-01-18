@@ -58,57 +58,61 @@ reg [1:0] wb_state = IDLE;
  *  Wishbone Interface  *
  ************************/
 
-always @ (posedge wb_clk) begin
+always @ (posedge clk) begin
   if (reset == 1'b1) begin
-    wb_ack = 0;
+    wb_ack = LOW;
     wb_state = IDLE;
     tx_fifo_push = 0;
     rx_fifo_pop = 0;
   end
   else
-    if (wb_state == IDLE) begin
+  case (wb_state)
+    IDLE:
       if (wb_stb == HIGH) begin
-        /* write to UART: wb_we == LOW */
-        if (wb_we == LOW) begin
-          case (wb_addr)
-  	    TX_DATA_ADDR : begin
-                             tx_fifo_data_in = wb_data_in;
-                             tx_fifo_push = HIGH;
-                           end
-            FREQ_DIV_ADDR: freq_divider = wb_data_in;
-  	  endcase
-          wb_state = WRITE_ACK;
-          wb_ack = HIGH;
-        end
-        /* read from UART: wb_we == HIGH */
-        else begin 
-          case (wb_addr)
-            RX_DATA_ADDR: begin
-                            wb_data_out = rx_fifo_data_out;
-                            rx_fifo_pop = HIGH;
-                          end
-          endcase
-          wb_state = READ_ACK;
-          wb_ack = HIGH;
-        end
-      end
-    end
+        if (wb_clk == HIGH) begin
+          if (wb_we == LOW) begin // write to UART
+            case (wb_addr)
+              TX_DATA_ADDR: begin
+                              tx_fifo_push = HIGH;
+                              tx_fifo_data_in = wb_data_in;
+                            end
+              FREQ_DIV_ADDR: freq_divider = wb_data_in;
+            endcase
+            wb_ack = HIGH;
+            wb_state = WRITE_ACK;
+          end else begin         // read from UART
+            case (wb_addr)
+              RX_DATA_ADDR: begin
+                              rx_fifo_pop = HIGH;
+                              wb_data_out = rx_fifo_data_out;
+                            end
+            endcase
+            wb_ack = HIGH;
+            wb_state = READ_ACK;
+          end
+        end // wb_clk
+      end // wb_stb
+
     /* write ack */
-    else if (wb_state == WRITE_ACK) begin
-      tx_fifo_push = LOW;
-      if (wb_stb == LOW) begin
-        wb_state = IDLE;
-        wb_ack = LOW;
+    WRITE_ACK:
+      begin
+        tx_fifo_push = LOW;
+        if (wb_clk == LOW) begin
+          wb_state = IDLE;
+          wb_ack = LOW;
+        end
       end
-    end
+
     /* read ack */
-    else if (wb_state == READ_ACK) begin
-      rx_fifo_pop = LOW;
-      if (wb_stb == LOW) begin
-        wb_state = IDLE;
-        wb_ack = LOW;
-      end
-    end // read ack
+    READ_ACK:
+      begin
+        rx_fifo_pop = LOW;
+        if (wb_clk == LOW) begin
+          wb_state = IDLE;
+          wb_ack = LOW;
+        end
+      end // read ack
+  endcase
 end
 
 /******************
