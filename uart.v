@@ -132,7 +132,6 @@ wire tx_fifo_full; // NC
  *  TX FIFO  *
  *************/
 
-reg [7:0] byte = 65; // 'A'
 reg [2:0] bitz = 0;
 
 fifo tx_fifo0(
@@ -145,43 +144,39 @@ fifo tx_fifo0(
   .full(tx_fifo_full), // XXX: 'full' flag is not connected
   .empty(tx_fifo_empty));
 
-always @ (posedge tx_clock) begin
-  if (reset == 1'b1) begin
-    tx_bit = 1'b1; // tx idle bit
-    tx_fifo_pop = 1'b0;
+always @ (posedge clk) begin
+  if (reset == HIGH) begin
+    tx_bit = HIGH; // tx idle bit
+    tx_fifo_pop = LOW;
     tx_state = IDLE;
   end else begin
     case (tx_state)
       0:
          begin
-           if (tx_fifo_empty == LOW) begin
-             tx_bit = 0; // tx start bit
-             tx_state = 1;
+           if (tx_clock == HIGH && tx_fifo_empty == LOW) begin
+             tx_bit = LOW;  // tx start bit
              bitz = 0;
-             tx_fifo_pop = HIGH;
-           end else begin
-             tx_bit = 1; // tx idle bit
+	     tx_fifo_pop = HIGH;
+             tx_state = 1;
+           end else if (tx_clock == HIGH) begin
+             tx_bit = HIGH; // tx idle bit
            end
          end
 
       1:
          if (tx_fifo_pop == HIGH) begin
            tx_fifo_pop = LOW;
-         end else if (bitz == 7) begin
-//         tx_fifo_pop = HIGH;
+	 end else if (tx_clock == HIGH && bitz == 7) begin
            tx_bit = tx_fifo_data_out[bitz];
-//         tx_bit = byte[bitz];
            tx_state = 2;
-         end else begin
-//         tx_fifo_pop = HIGH;
+         end else if(tx_clock == HIGH) begin
            tx_bit = tx_fifo_data_out[bitz];
-//         tx_bit = byte[bitz];
            bitz = bitz + 1;
          end
 
      2:
-         begin
-           tx_bit = 1; // tx stop bit
+         if (tx_clock == HIGH) begin
+           tx_bit = HIGH; // tx stop bit
            tx_state = 0;
          end
     endcase
