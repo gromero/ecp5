@@ -24,14 +24,12 @@ localparam FREQ_DIV_ADDR = 2'b10;
 localparam HIGH = 1'b1;
 localparam LOW = 1'b0;
 
-/* ref_clk is 12 MHz, so Tref_clk = 0.00000008333333s
- * On the other hand, baud rate is 115200, so it's
- * necessary a 115200 * 16 baud rate, so
- * Tbaud_rate = 0.0000005425347, then Tref_clk/Tbaud_rate = 6.510417,
- * and so ~6, hence freq_divider for a 12 MHz is 6.
- * Or simply 12 MHz / (115200 * 16) ~= 6 = freq_divider.
+/*
+ * Default baudrate: 19200 8N1, i.e. 12MHz/16/39 = 19230.77, where 16 is
+ * hardcoded and 39 can be changed writing to 'freq_divider' register at
+ * address 0x02.
  */
-reg [7:0] freq_divider = 39;
+reg [7:0] freq_divider = 78;
 reg [7:0] freq_counter = 0;
 reg uart_clock = LOW;
 
