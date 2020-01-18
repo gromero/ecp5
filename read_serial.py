@@ -5,7 +5,7 @@ import serial
 # configure the serial connections
 ser = serial.Serial(
     port='/dev/ttyUSB1',
-    baudrate=19200,
+    baudrate=9600,
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
     bytesize=serial.EIGHTBITS
