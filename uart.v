@@ -210,7 +210,7 @@ always @ (posedge clk) begin
 end
 
 // uart_clock---->[uart_clock/16]---->tx_clock
-always @ (posedge clk) begin
+always @ (negedge clk) begin
   if (reset == HIGH) begin
     tx_clock_counter = 0;
   end
