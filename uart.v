@@ -31,7 +31,7 @@ localparam LOW = 1'b0;
  * and so ~6, hence freq_divider for a 12 MHz is 6.
  * Or simply 12 MHz / (115200 * 16) ~= 6 = freq_divider.
  */
-reg [7:0] freq_divider = 6;
+reg [7:0] freq_divider = 39;
 reg [7:0] freq_counter = 0;
 reg uart_clock = LOW;
 
