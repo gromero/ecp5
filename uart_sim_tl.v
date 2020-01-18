@@ -29,7 +29,7 @@ wire ack_bit;
     #2 wb_clock = 1;
     #2 wb_clock = 0;
     #2 cs = 0; // de select IC
-    #1000 $stop;
+    #4000 $stop;
   end
 
 uart serial0(
