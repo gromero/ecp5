@@ -53,7 +53,13 @@ sudo dnf install iverilog
 sudo dnf install gtkwave
 ```
 
+---
+
+#### Running a ready-made example
+
 Dir `/sim` contains a quite simple example on how to simulate using Iverilog
 and GTKWave. Just run [t_port.sh](/sim/t_port.sh) and it will compile the sim-
 ulation example [t_port.v](/sim/t_port.sh) using Iverilog and then call GTKWave
 to show the result. It's necessary to have `$DISPLAY` variable set correctly.
+
+---
