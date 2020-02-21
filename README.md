@@ -62,4 +62,8 @@ and GTKWave. Just run [t_port.sh](/sim/t_port.sh) and it will compile the sim-
 ulation example [t_port.v](/sim/t_port.sh) using Iverilog and then call GTKWave
 to show the result. It's necessary to have `$DISPLAY` variable set correctly.
 
+In order to run a more complex example, use the [uart_sim_tl](/uart_sim_tl.sh),
+it will compile an UART attached to a *wishbone* bus and write char 'A' (decimal
+65) to the bus so it appears on the serial / UART side.
+
 ---
