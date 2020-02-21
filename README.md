@@ -69,5 +69,8 @@ You must see the following simulated waves:
 In order to run a more complex example, use the [uart_sim_tl](/uart_sim_tl.sh),
 it will compile an UART attached to a *wishbone* bus and write char 'A' (decimal
 65) to the bus so it appears on the serial / UART side.
+<p align="center">
+  <img width="320" height="240" src="/uart_sim_tl_wave.png">
+</p>
 
 ---
