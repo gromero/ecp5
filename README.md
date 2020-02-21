@@ -34,3 +34,26 @@ through the wire so it can be read from `/dev/ttyUSB1`.
   of 'A's printed out to the terminal
 
 ---
+
+### Simulation with Iverilog + GTKWave
+
+#### Instalation
+
+Ubuntu:
+
+```bash
+sudo apt-get install iverilog
+sudo apt-get install gtkwave
+
+```
+
+Fedora:
+```bash
+sudo dnf install iverilog
+sudo dnf install gtkwave
+```
+
+Dir `/sim` contains a quite simple example on how to simulate using Iverilog
+and GTKWave. Just run [t_port.sh](/sim/t_port.sh) and it will compile the sim-
+ulation example [t_port.v](/sim/t_port.sh) using Iverilog and then call GTKWave
+to show the result. It's necessary to have `$DISPLAY` variable set correctly.
