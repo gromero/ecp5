@@ -61,6 +61,10 @@ Dir `/sim` contains a quite simple example on how to simulate using Iverilog
 and GTKWave. Just run [t_port.sh](/sim/t_port.sh) and it will compile the sim-
 ulation example [t_port.v](/sim/t_port.sh) using Iverilog and then call GTKWave
 to show the result. It's necessary to have `$DISPLAY` variable set correctly.
+You must see the following simulated waves:
+<p align="center">
+  <img width="320" height="240" src="/sim/t_port_wave.png">
+</p>
 
 In order to run a more complex example, use the [uart_sim_tl](/uart_sim_tl.sh),
 it will compile an UART attached to a *wishbone* bus and write char 'A' (decimal
