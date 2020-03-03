@@ -25,8 +25,8 @@
 #define DATA_OUT0 7
 #define DATA_OUT1 21
 #define DATA_OUT2 22
-#define DATA_OUT3 11
-#define DATA_OUT4 10
+#define DATA_OUT3 10
+#define DATA_OUT4 11
 #define DATA_OUT5 13
 #define DATA_OUT6 12
 #define DATA_OUT7 14

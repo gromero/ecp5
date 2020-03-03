@@ -24,8 +24,8 @@ IOBUF PORT "addr[1]" IO_TYPE=LVCMOS33;
 LOCATE COMP "data_in[0]" SITE "U17"; # RASP_IO04 | wPi_7
 LOCATE COMP "data_in[1]" SITE "U18"; # RASP_IO05 | wPi_21
 LOCATE COMP "data_in[2]" SITE "T18"; # RASP_IO06 | wPi_22
-LOCATE COMP "data_in[4]" SITE "R18"; # RASP_IO07 | wPi_11
 LOCATE COMP "data_in[3]" SITE "U19"; # RASP_IO08 | wPi_10
+LOCATE COMP "data_in[4]" SITE "R18"; # RASP_IO07 | wPi_11
 LOCATE COMP "data_in[5]" SITE "T19"; # RASP_IO09 | wPi_13
 LOCATE COMP "data_in[6]" SITE "U20"; # RASP_IO10 | wPi_12
 LOCATE COMP "data_in[7]" SITE "R20"; # RASP_IO11 | wPi_14
