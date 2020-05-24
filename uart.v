@@ -214,7 +214,7 @@ always @ (posedge clk) begin
   end
 end
 
-// uart_clock---->[uart_clock/16]---->tx_clock
+// master_clock-->[master_clock/freq_divider]=uart_clock-->[uart_clock/16]=tx_clock
 always @ (posedge clk) begin
   if (reset == HIGH) begin
     tx_clock_counter = 0;
@@ -231,6 +231,26 @@ always @ (posedge clk) begin
   end
   else begin // uart_clock == LOW
     tx_clock = LOW;
+  end
+end
+
+// master_clock-->[master_clock/freq_divider]=uart_clock-->[uart_clock/16]=rx_clock
+always @ (posedge clk) begin
+  if (reset == HIGH) begin
+    rx_clock_counter = 0;
+  end
+  else if (uart_clock == HIGH) begin
+    rx_clock_counter = rx_clock_counter + 1;
+    if (rx_clock_counter == 16) begin
+       rx_clock_counter = 0;
+       rx_clock = HIGH;
+    end
+    else begin
+      rx_clock = LOW;
+    end
+  end
+  else begin
+    rx_clock = LOW;
   end
 end
 
