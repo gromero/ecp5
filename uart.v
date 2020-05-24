@@ -41,9 +41,12 @@ reg tx_fifo_push;
 reg [7:0] tx_fifo_data_in;
 wire [7:0] tx_fifo_data_out;
 
+reg [7:0] rx_clock_counter = 0;
+reg rx_clock = LOW;
+
 reg rx_fifo_pop;
-wire rx_fifo_push;
-wire [7:0] rx_fifo_data_in;
+reg rx_fifo_push;
+reg [7:0] rx_fifo_data_in;
 wire [7:0] rx_fifo_data_out;
 
 // FSM states: idle, read_ack, write_ack
@@ -130,6 +133,7 @@ wire tx_fifo_full; // NC
  *  TX FIFO  *
  *************/
 
+// TODO: use tx_bit_counter above instead
 reg [2:0] bitz = 0;
 
 fifo tx_fifo0(
@@ -176,6 +180,86 @@ always @ (posedge clk) begin
          if (tx_clock == HIGH) begin
            tx_bit = HIGH; // tx stop bit
            tx_state = 0;
+         end
+    endcase
+  end
+end
+
+/******************
+ *  UART RX part  *
+ ******************/
+
+// FSM states: IDLE, START, RECV, STOP
+localparam RECV = 3'b01;
+localparam SYNC = 3'b11;
+localparam START = 3'b100;
+
+reg [2:0] rx_state = IDLE;
+reg [2:0] rx_bit_counter = 0;
+reg [3:0] rx_sync_delay = 0;
+
+wire rx_fifo_empty;
+wire rx_fifo_full; // NC
+
+/*************
+ *  RX FIFO  *
+ *************/
+
+fifo rx_fifo0(
+  .clk(clk),
+  .reset(reset),
+  .push(rx_fifo_push),
+  .pop(rx_fifo_pop),
+  .data_in(rx_fifo_data_in),
+  .data_out(rx_fifo_data_out),
+  .full(rx_fifo_full),
+  .empty(rx_fifo_empty)); // XXX: 'empty' flag is not connected
+
+always @ (posedge clk) begin
+  if (reset == HIGH) begin
+    rx_fifo_push = LOW;
+    rx_state = IDLE;
+  end else begin
+    case (rx_state)
+      IDLE:
+         begin
+           if (tx_fifo_push == HIGH) begin
+             tx_fifo_push = LOW;
+           end
+
+           if (uart_clock == HIGH && rx_bit == LOW) begin
+             rx_state = START;
+             rx_bit_counter = 0;
+             rx_sync_delay = 0;
+           end
+         end
+
+      START:
+        begin
+         if (uart_clock == HIGH && rx_sync_delay != 7) begin
+           rx_sync_delay = rx_sync_delay + 1;
+         end
+         else begin
+           rx_state = RECV;
+           rx_clock_counter = 0;
+         end
+       end
+
+      RECV:
+         if (rx_clock == HIGH && rx_bit_counter != 7) begin
+           rx_fifo_data_in[rx_bit_counter] = rx_bit;
+           rx_bit_counter = rx_bit_counter + 1;
+	 end else begin
+           rx_fifo_data_in[rx_bit_counter] = rx_bit;
+           rx_state = STOP;
+         end
+
+      STOP:
+         if (tx_clock == HIGH) begin
+           if (tx_fifo_full == LOW) begin
+             tx_fifo_push = HIGH;
+           end
+           tx_state = IDLE;
          end
     endcase
   end
@@ -228,7 +312,7 @@ always @ (posedge clk) begin
 end
 
 // master_clock-->[master_clock/freq_divider]=uart_clock-->[uart_clock/16]=rx_clock
-always @ (posedge clk) begin
+always @ (posedge clk, rx_clock_counter) begin
   if (reset == HIGH) begin
     rx_clock_counter = 0;
   end
