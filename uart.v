@@ -43,6 +43,7 @@ wire [7:0] tx_fifo_data_out;
 
 reg [7:0] rx_clock_counter = 0;
 reg rx_clock = LOW;
+reg sync = 0;
 
 reg rx_fifo_pop;
 reg rx_fifo_push;
@@ -241,7 +242,7 @@ always @ (posedge clk) begin
          end
          else begin
            rx_state = RECV;
-           rx_clock_counter = 0;
+           sync = HIGH;
          end
        end
 
@@ -312,9 +313,13 @@ always @ (posedge clk) begin
 end
 
 // master_clock-->[master_clock/freq_divider]=uart_clock-->[uart_clock/16]=rx_clock
-always @ (posedge clk, rx_clock_counter) begin
+always @ (posedge clk) begin
   if (reset == HIGH) begin
     rx_clock_counter = 0;
+  end
+  else if (sync == HIGH) begin
+    rx_clock_counter = 0;
+    sync = LOW;
   end
   else if (uart_clock == HIGH) begin
     rx_clock_counter = rx_clock_counter + 1;
