@@ -25,10 +25,13 @@ localparam HIGH = 1'b1;
 localparam LOW = 1'b0;
 
 /*
- * Default baudrate: 19200 8N1, i.e. 12MHz/16/39 = 19230.77, where 16 is
- * hardcoded and 39 can be changed writing to 'freq_divider' register at
- * address 0x02.
+ * Default baudrate is 9600 8N1, i.e. master clock (external) is 12 MHz,
+ * hence 12000000/78/16 = 9615.385 = 9600 bps, where 78 is the default
+ * value set in 'freq_divider' register and 16 is the fixed divider used
+ * to make the tx_clock and rx_clock signals (9600). See comment about
+ * the derived clocks from master clock.
  */
+
 reg [7:0] freq_divider = 78;
 reg [7:0] freq_counter = 0;
 reg uart_clock = LOW;
