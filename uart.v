@@ -223,8 +223,8 @@ always @ (posedge clk) begin
     case (rx_state)
       IDLE:
          begin
-           if (tx_fifo_push == HIGH) begin
-             tx_fifo_push = LOW;
+           if (rx_fifo_push == HIGH) begin
+             rx_fifo_push = LOW;
            end
 
            if (uart_clock == HIGH && rx_bit == LOW) begin
@@ -255,11 +255,11 @@ always @ (posedge clk) begin
          end
 
       STOP:
-         if (tx_clock == HIGH) begin
-           if (tx_fifo_full == LOW) begin
-             tx_fifo_push = HIGH;
+         if (rx_clock == HIGH) begin
+           if (rx_fifo_full == LOW) begin
+             rx_fifo_push = HIGH;
            end
-           tx_state = IDLE;
+           rx_state = IDLE;
          end
     endcase
   end
