@@ -194,11 +194,12 @@ end
  ******************/
 
 // FSM states: IDLE, START, RECV, STOP
-localparam RECV = 3'b01;
-localparam SYNC = 3'b11;
-localparam START = 3'b100;
+localparam RX_IDLE =  3'b000;
+localparam RX_START = 3'b001;
+localparam RECV =     3'b010;
+localparam RX_STOP =  3'b011;
 
-reg [2:0] rx_state = IDLE;
+reg [2:0] rx_state = RX_IDLE;
 reg [2:0] rx_bit_counter = 0;
 reg [3:0] rx_sync_delay = 0;
 
@@ -222,48 +223,55 @@ fifo rx_fifo0(
 always @ (posedge clk) begin
   if (reset == HIGH) begin
     rx_fifo_push = LOW;
-    rx_state = IDLE;
+    rx_state = RX_IDLE;
   end else begin
     case (rx_state)
-      IDLE:
+      RX_IDLE:
          begin
            if (rx_fifo_push == HIGH) begin
              rx_fifo_push = LOW;
            end
 
            if (uart_clock == HIGH && rx_bit == LOW) begin
-             rx_state = START;
+             rx_state = RX_START;
              rx_bit_counter = 0;
              rx_sync_delay = 0;
            end
          end
 
-      START:
+      RX_START:
         begin
-         if (uart_clock == HIGH && rx_sync_delay != 7) begin
-           rx_sync_delay = rx_sync_delay + 1;
-         end
-         else begin
-           rx_state = RECV;
-           sync = HIGH;
-         end
-       end
+         if (uart_clock == HIGH) begin
+           if (rx_sync_delay != 7) begin
+             rx_sync_delay = rx_sync_delay + 1;
+           end
+           else begin
+             rx_state = RECV;
+             sync = HIGH;
+           end
+          end
+        end
 
       RECV:
-         if (rx_clock == HIGH && rx_bit_counter != 7) begin
-           rx_fifo_data_in[rx_bit_counter] = rx_bit;
-           rx_bit_counter = rx_bit_counter + 1;
-	 end else begin
-           rx_fifo_data_in[rx_bit_counter] = rx_bit;
-           rx_state = STOP;
+        begin
+         if (rx_clock == HIGH) begin
+           if (rx_bit_counter != 7) begin
+             rx_fifo_data_in[rx_bit_counter] = rx_bit;
+             rx_bit_counter = rx_bit_counter + 1;
+	  end
+          else begin
+            rx_fifo_data_in[rx_bit_counter] = rx_bit;
+            rx_state = RX_STOP;
+          end
          end
+        end
 
-      STOP:
+      RX_STOP:
          if (rx_clock == HIGH) begin
            if (rx_fifo_full == LOW) begin
              rx_fifo_push = HIGH;
            end
-           rx_state = IDLE;
+           rx_state = RX_IDLE;
          end
     endcase
   end
