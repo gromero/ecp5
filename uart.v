@@ -44,12 +44,15 @@ reg tx_fifo_push;
 reg [7:0] tx_fifo_data_in;
 wire [7:0] tx_fifo_data_out;
 
-reg [7:0] rx_clock_counter = 0;
-reg rx_clock = LOW;
-reg sync = 0;
+// reg [10:0] rx_clock_counter = 0;
+// reg [10:0] rx_uart_clock_counter = 0;
+// reg [10:0] rx_uart_clock_counter_tmp = 0;
+// reg rx_clock = LOW;
+// reg [10:0] rx_uart_clock = 0;
+// reg sync = 0;
 
-reg rx_fifo_pop;
-reg rx_fifo_push;
+reg rx_fifo_pop = LOW;
+reg rx_fifo_push = LOW;
 reg [7:0] rx_fifo_data_in;
 wire [7:0] rx_fifo_data_out;
 
@@ -193,15 +196,17 @@ end
  *  UART RX part  *
  ******************/
 
-// FSM states: IDLE, START, RECV, STOP
-localparam RX_IDLE =  3'b000;
-localparam RX_START = 3'b001;
-localparam RECV =     3'b010;
-localparam RX_STOP =  3'b011;
+// FSM states:
+localparam IDLE      = 4'b0000;
+localparam START_BIT = 4'b0001;
+localparam RECV      = 4'b0010;
+localparam STOP_BIT  = 4'b0011;
+localparam END       = 4'b0100;
 
-reg [2:0] rx_state = RX_IDLE;
-reg [2:0] rx_bit_counter = 0;
-reg [3:0] rx_sync_delay = 0;
+reg [15:0] rx_clock_counter = 16'b0;
+reg [3:0] rx_state = IDLE;
+reg rx_uart_clock;
+reg [7:0] rx_bit_ctr = 1'b0;
 
 wire rx_fifo_empty;
 wire rx_fifo_full; // NC
@@ -223,56 +228,47 @@ fifo rx_fifo0(
 always @ (posedge clk) begin
   if (reset == HIGH) begin
     rx_fifo_push = LOW;
-    rx_state = RX_IDLE;
+    rx_state = IDLE;
   end else begin
+
     case (rx_state)
-      RX_IDLE:
-         begin
-           if (rx_fifo_push == HIGH) begin
-             rx_fifo_push = LOW;
-           end
-
-           if (uart_clock == HIGH && rx_bit == LOW) begin
-             rx_state = RX_START;
-             rx_bit_counter = 0;
-             rx_sync_delay = 0;
-           end
-         end
-
-      RX_START:
-        begin
-         if (uart_clock == HIGH) begin
-           if (rx_sync_delay != 7) begin
-             rx_sync_delay = rx_sync_delay + 1;
-           end
-           else begin
-             rx_state = RECV;
-             sync = HIGH;
-           end
-          end
+      IDLE:
+      begin
+        if (rx_fifo_push == HIGH) begin
+          rx_fifo_push <= LOW;
         end
 
-      RECV:
-        begin
-         if (rx_clock == HIGH) begin
-           if (rx_bit_counter != 7) begin
-             rx_fifo_data_in[rx_bit_counter] = rx_bit;
-             rx_bit_counter = rx_bit_counter + 1;
-	  end
-          else begin
-            rx_fifo_data_in[rx_bit_counter] = rx_bit;
-            rx_state = RX_STOP;
-          end
-         end
+        if (!rx_pin && rx_clock) begin
+          rx_bit_ctr <= 1'b0;
+          rx_state <= START_BIT;
         end
+      end
 
-      RX_STOP:
-         if (rx_clock == HIGH) begin
-           if (rx_fifo_full == LOW) begin
-             rx_fifo_push = HIGH;
-           end
-           rx_state = RX_IDLE;
-         end
+      START_BIT:
+      begin
+        if (rx_clock) begin
+          if (rx_bit_ctr == (8 - 1)) begin
+//          o_clk <= rx_pin;
+//          rx_fifo_data_in[rx_bit_ctr] = rx_bit;
+            rx_fifo_data_in <= 8'H41;
+            rx_state <= STOP_BIT;
+          end else begin
+//          o_clk <= rx_pin;
+            rx_fifo_data_in[rx_bit_ctr] = rx_bit;
+            rx_bit_ctr <= rx_bit_ctr + 1'b1;
+          end
+        end
+      end
+
+     STOP_BIT
+     begin
+       if (rx_clock) begin
+         rx_fifo_push <= HIGH;
+//       o_clk <= LOW;
+         rx_state <= IDLE;
+       end
+     end
+
     endcase
   end
 end
@@ -323,28 +319,22 @@ always @ (posedge clk) begin
   end
 end
 
-// master_clock-->[master_clock/freq_divider]=uart_clock-->[uart_clock/16]=rx_clock
-always @ (posedge clk) begin
-  if (reset == HIGH) begin
-    rx_clock_counter = 0;
-  end
-  else if (sync == HIGH) begin
-    rx_clock_counter = 0;
-    sync = LOW;
-  end
-  else if (uart_clock == HIGH) begin
-    rx_clock_counter = rx_clock_counter + 1;
-    if (rx_clock_counter == 16) begin
-       rx_clock_counter = 0;
-       rx_clock = HIGH;
-    end
-    else begin
-      rx_clock = LOW;
-    end
+// "rx_clock" : 9600 OK
+always @ (posedge i_clk) begin
+  if (rx_sync) begin
+    rx_sync <= 0;
+    rx_clock_counter <= 0;
   end
   else begin
-    rx_clock = LOW;
+  if (rx_clock_counter == (1250 - 1)) begin
+    rx_clock <= 1;
+    rx_clock_counter <= 0;
   end
+  else begin
+    rx_clock <= 0;
+    rx_clock_counter <= rx_clock_counter + 1'b1;
+  end
+ end
 end
 
 endmodule
