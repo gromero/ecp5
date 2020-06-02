@@ -90,6 +90,7 @@ always @ (posedge clk) begin
               RX_DATA_ADDR: begin
                               rx_fifo_pop = HIGH;
                               wb_data_out = rx_fifo_data_out;
+//			       wb_data_out = 65;
                             end
             endcase
             wb_ack = HIGH;
@@ -112,6 +113,8 @@ always @ (posedge clk) begin
     READ_ACK:
       begin
         rx_fifo_pop = LOW;
+        wb_data_out = rx_fifo_data_out;
+//        wb_data_out = 65;
         if (wb_clk == LOW) begin
           wb_state = IDLE;
           wb_ack = LOW;
@@ -198,9 +201,10 @@ localparam RX_IDLE =  3'b000;
 localparam RX_START = 3'b001;
 localparam RECV =     3'b010;
 localparam RX_STOP =  3'b011;
+localparam OSC     =  3'b100;
 
 reg [2:0] rx_state = RX_IDLE;
-reg [2:0] rx_bit_counter = 0;
+reg [3:0] rx_bit_counter = 0;
 reg [3:0] rx_sync_delay = 0;
 
 wire rx_fifo_empty;
@@ -255,21 +259,28 @@ always @ (posedge clk) begin
       RECV:
         begin
          if (rx_clock == HIGH) begin
-           if (rx_bit_counter != 7) begin
+           if (rx_bit_counter < 8) begin
              rx_fifo_data_in[rx_bit_counter] = rx_bit;
              rx_bit_counter = rx_bit_counter + 1;
+             rx_state = OSC;
 	  end
           else begin
-            rx_fifo_data_in[rx_bit_counter] = rx_bit;
+            rx_fifo_push = HIGH;
             rx_state = RX_STOP;
+
           end
          end
         end
 
-      RX_STOP:
-         if (rx_clock == HIGH) begin
-           if (rx_fifo_full == LOW) begin
-             rx_fifo_push = HIGH;
+      OSC: begin
+        if (rx_clock == HIGH) begin
+         rx_state = RECV;
+        end
+      end
+
+      RX_STOP: begin
+           if (rx_fifo_push == HIGH) begin
+             rx_fifo_push = LOW;
            end
            rx_state = RX_IDLE;
          end

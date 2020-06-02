@@ -1,6 +1,6 @@
 module fifo(clk, reset, full, empty, data_in, data_out, push, pop);
 
-localparam DEPTH = 10;
+localparam DEPTH = 2;
 
 localparam PUSH = 0;
 localparam POP  = 1;
