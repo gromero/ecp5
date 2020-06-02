@@ -126,9 +126,10 @@ end
  *  UART TX part  *
  ******************/
 
-// FSM states: IDLE, SEND, STOP
-localparam SEND = 2'b01;
-localparam STOP = 2'b10;
+// FSM states: IDLE, START, SEND, STOP
+localparam START = 2'b01;
+localparam SEND  = 2'b10;
+localparam STOP  = 2'b11;
 reg [1:0] tx_state = IDLE;
 reg [2:0] tx_bit_counter = 0;
 
@@ -154,42 +155,52 @@ fifo tx_fifo0(
 
 always @ (posedge clk) begin
   if (reset == HIGH) begin
-    tx_bit = HIGH; // tx idle bit
-    tx_fifo_pop = LOW;
-    tx_state = IDLE;
-  end else begin
+    tx_bit <= HIGH; // tx idle bit
+    tx_fifo_pop <= LOW;
+    tx_state <= IDLE;
+  end
+  else begin
     case (tx_state)
-      0:
+      IDLE:
          begin
-           if (tx_clock == HIGH && tx_fifo_empty == LOW) begin
-             tx_bit = LOW;  // tx start bit
-             bitz = 0;
-	     tx_fifo_pop = HIGH;
-             tx_state = 1;
-           end else if (tx_clock == HIGH) begin
-             tx_bit = HIGH; // tx idle bit
-           end
+           if (tx_fifo_empty == LOW)
+             tx_state <= START;
          end
-
-      1:
-         if (tx_fifo_pop == HIGH) begin
-           tx_fifo_pop = LOW;
-	 end else if (tx_clock == HIGH && bitz == 7) begin
-           tx_bit = tx_fifo_data_out[bitz];
-           tx_state = 2;
-         end else if(tx_clock == HIGH) begin
-           tx_bit = tx_fifo_data_out[bitz];
-           bitz = bitz + 1;
-         end
-
-      2:
-         if (tx_clock == HIGH) begin
-           tx_bit = HIGH; // tx stop bit
-           tx_state = 0;
-         end
+      SEND:
+        begin
+          if (tx_fifo_pop == HIGH)
+            tx_fifo_pop <= LOW;
+        end
     endcase
   end
 end
+
+always @ (posedge tx_clock) begin
+  case (tx_state)
+    START:
+    begin
+      tx_bit <= LOW;
+      bitz <= 0;
+      tx_fifo_pop = HIGH;
+      tx_state <= SEND;
+    end
+    SEND:
+    begin
+      tx_bit = tx_fifo_data_out[bitz];
+      if (bitz == 7)
+        tx_state = STOP;
+      else begin
+        bitz = bitz + 1;
+      end
+    end
+    STOP:
+    begin
+      tx_bit <= HIGH;
+      tx_state = IDLE;
+    end
+  endcase
+end
+
 
 /******************
  *  UART RX part  *
