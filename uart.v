@@ -25,18 +25,17 @@ localparam HIGH = 1'b1;
 localparam LOW = 1'b0;
 
 /*
- * Default baudrate is 9600 8N1, i.e. master clock (external) is 12 MHz,
- * hence 12000000/78/16 = 9615.385 = 9600 bps, where 78 is the default
- * value set in 'freq_divider' register and 16 is the fixed divider used
- * to make the tx_clock and rx_clock signals (9600). See comment about
- * the derived clocks from master clock.
+ * Default baudrate is 9600 8N1, i.e. master clock (external) is 12 MHz, and
+ * freq_divider is the number of clocks per half-baud.
+ * Hence 12000000/(625*2) = 9600 bps, where 625 is the default value set in
+ * 'freq_divider' register to make the tx_clock and rx_clock signals (9600).
  */
 
-reg [7:0] freq_divider = 78;
-reg [7:0] freq_counter = 0;
+reg [9:0] freq_divider = 625;
+reg [9:0] freq_counter = 0;
 reg uart_clock = LOW;
 
-reg [7:0] tx_clock_counter = 0;
+reg [9:0] tx_clock_counter = 0;
 reg tx_clock = LOW;
 
 reg tx_fifo_pop;
@@ -44,7 +43,7 @@ reg tx_fifo_push;
 reg [7:0] tx_fifo_data_in;
 wire [7:0] tx_fifo_data_out;
 
-reg [7:0] rx_clock_counter = 0;
+reg [9:0] rx_clock_counter = 0;
 reg rx_clock = LOW;
 reg sync = 0;
 
@@ -298,64 +297,46 @@ end
 // rate, so uart_clock / 16 can give the correct tx and rx freq. This is
 // specially useful on RX code because we use a 8 uart_clock delay to sample
 // right in the middle of receiving signal.
-always @ (posedge clk) begin
-  if (reset == HIGH) begin
-    freq_counter = 0;
-  end
-  else begin
-    if (freq_counter == freq_divider) begin
-      uart_clock = HIGH;
-      freq_counter = 0;
-    end
-    else begin
-      uart_clock = LOW;
-      freq_counter = freq_counter + 1;
-    end
-  end
+
+
+// uart_clock
+always @ (posedge clk, reset) begin
+	if (reset == HIGH)
+		freq_counter <= 0;
+	else if (freq_counter == (freq_divider / 16) -1) begin
+		uart_clock <= ~uart_clock;
+		freq_counter <= 0;
+	end else
+		freq_counter <= freq_counter + 1;
+end
+		
+
+// tx_clock
+always @ (posedge clk, reset) begin
+	if (reset == HIGH)
+		tx_clock_counter <= 0;
+	else if (tx_clock_counter == freq_divider -1) begin
+		tx_clock_counter <= 0;
+		tx_clock <= ~tx_clock;
+	end else
+		tx_clock_counter <= tx_clock_counter + 1;
+end
+		
+
+// rx_clock
+// TODO: fix sync
+always @ (posedge clk, reset, sync) begin
+	if (reset == HIGH || sync == HIGH) begin
+		rx_clock_counter <= 0;
+		sync <= LOW;
+	end else if (rx_clock_counter == freq_divider -1) begin
+		rx_clock <= ~rx_clock;
+		rx_clock_counter <= 0;
+	end else
+		rx_clock_counter <= rx_clock_counter + 1;
 end
 
-// master_clock-->[master_clock/freq_divider]=uart_clock-->[uart_clock/16]=tx_clock
-always @ (posedge clk) begin
-  if (reset == HIGH) begin
-    tx_clock_counter = 0;
-  end
-  else if (uart_clock == HIGH) begin
-    tx_clock_counter = tx_clock_counter + 1;
-    if (tx_clock_counter == 16) begin
-       tx_clock_counter = 0;
-       tx_clock = HIGH;
-    end
-    else begin
-      tx_clock = LOW;
-    end
-  end
-  else begin // uart_clock == LOW
-    tx_clock = LOW;
-  end
-end
 
-// master_clock-->[master_clock/freq_divider]=uart_clock-->[uart_clock/16]=rx_clock
-always @ (posedge clk) begin
-  if (reset == HIGH) begin
-    rx_clock_counter = 0;
-  end
-  else if (sync == HIGH) begin
-    rx_clock_counter = 0;
-    sync = LOW;
-  end
-  else if (uart_clock == HIGH) begin
-    rx_clock_counter = rx_clock_counter + 1;
-    if (rx_clock_counter == 16) begin
-       rx_clock_counter = 0;
-       rx_clock = HIGH;
-    end
-    else begin
-      rx_clock = LOW;
-    end
-  end
-  else begin
-    rx_clock = LOW;
-  end
-end
+
 
 endmodule
