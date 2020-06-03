@@ -25,23 +25,20 @@ integer top = 0;
 integer bottom = 0;
 reg last_op = POP;
 
-always @ (posedge push, posedge pop, posedge reset) begin
-
-  if (reset == 1'b1) begin
+always @ (posedge reset) begin
     data_out <= 1'bz;
     top <= 0;
     bottom <= 0;
-  end
-  else begin
-    if (push == 1'b1) begin
+end
+
+always @ (posedge push) begin
       memory[top] = data_in;
       top = (top + 1) % DEPTH;
-    end
-    else if (pop == 1'b1) begin
+end
+
+always @ (posedge pop) begin
       data_out = memory[bottom];
       bottom = (bottom + 1) % DEPTH;
-    end
-  end
 end
 
 assign full = ((top+1)%DEPTH == bottom);

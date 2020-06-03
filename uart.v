@@ -77,8 +77,8 @@ always @ (posedge clk) begin
           if (wb_we == LOW) begin // write to UART
             case (wb_addr)
               TX_DATA_ADDR: begin
-                              tx_fifo_push = HIGH;
                               tx_fifo_data_in = wb_data_in;
+                              tx_fifo_push = HIGH;
                             end
               FREQ_DIV_ADDR: freq_divider = wb_data_in;
             endcase
