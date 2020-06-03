@@ -243,12 +243,6 @@ always @ (posedge clk) begin
           sync <= HIGH;
           rx_state <= RX_START;
         end
-      RX_STOP:
-        begin
-          rx_fifo_push <= LOW;
-          //TODO: improve fifo so that we can move this to the always block
-          //below
-       end
     endcase
   end
 end
@@ -272,6 +266,7 @@ always @ (posedge rx_clock) begin
       end
     RX_STOP:
       begin
+        rx_fifo_push <= LOW;
         tx_state <= RX_IDLE;
       end
   endcase
