@@ -207,15 +207,13 @@ end
  ******************/
 
 // FSM states: IDLE, START, RECV, STOP
-localparam RX_IDLE =  3'b000;
-localparam RX_START = 3'b001;
-localparam RECV =     3'b010;
-localparam RX_STOP =  3'b011;
-localparam OSC     =  3'b100;
+localparam RX_IDLE =  2'b00;
+localparam RX_START = 2'b01;
+localparam RECV =     2'b10;
+localparam RX_STOP =  2'b11;
 
-reg [2:0] rx_state = RX_IDLE;
+reg [1:0] rx_state = RX_IDLE;
 reg [3:0] rx_bit_counter = 0;
-reg [3:0] rx_sync_delay = 0;
 
 wire rx_fifo_empty;
 wire rx_fifo_full; // NC
@@ -241,86 +239,47 @@ always @ (posedge clk) begin
   end else begin
     case (rx_state)
       RX_IDLE:
-         begin
-           if (rx_fifo_push == HIGH) begin
-             rx_fifo_push = LOW;
-           end
-
-           if (uart_clock == HIGH && rx_bit == LOW) begin
-             rx_state = RX_START;
-             rx_bit_counter = 0;
-             rx_sync_delay = 0;
-           end
-         end
-
-      RX_START:
+        if (rx_bit == LOW) begin
+          sync <= HIGH;
+          rx_state <= RX_START;
+        end
+      RX_STOP:
         begin
-         if (uart_clock == HIGH) begin
-           if (rx_sync_delay != 7) begin
-             rx_sync_delay = rx_sync_delay + 1;
-           end
-           else begin
-             rx_state = RECV;
-             sync = HIGH;
-           end
-          end
-        end
-
-      RECV:
-        begin
-         if (rx_clock == HIGH) begin
-           if (rx_bit_counter < 8) begin
-             rx_fifo_data_in[rx_bit_counter] = rx_bit;
-             rx_bit_counter = rx_bit_counter + 1;
-             rx_state = OSC;
-	  end
-          else begin
-            rx_fifo_push = HIGH;
-            rx_state = RX_STOP;
-
-          end
-         end
-        end
-
-      OSC: begin
-        if (rx_clock == HIGH) begin
-         rx_state = RECV;
-        end
-      end
-
-      RX_STOP: begin
-           if (rx_fifo_push == HIGH) begin
-             rx_fifo_push = LOW;
-           end
-           rx_state = RX_IDLE;
-         end
+          rx_fifo_push <= LOW;
+          //TODO: improve fifo so that we can move this to the always block
+          //below
+       end
     endcase
   end
+end
+
+always @ (posedge rx_clock) begin
+  case (rx_state)
+    RX_START:
+      begin
+        rx_bit_counter <= 0;
+        rx_state <= RECV;
+      end
+    RECV:
+      begin
+        rx_fifo_data_in[rx_bit_counter] = rx_bit;
+        if (rx_bit_counter == 7) begin
+          rx_fifo_push <= HIGH;
+          rx_state <= RX_STOP;
+        end
+        else
+          rx_bit_counter <= rx_bit_counter + 1;
+      end
+    RX_STOP:
+      begin
+        tx_state <= RX_IDLE;
+      end
+  endcase
 end
 
 /**********************
  *  CLOCK GENERATORS  *
  **********************/
-
-// clk---->[clk/freq_divisor]---->uart_clock
-//
-// N.B.: freq_divisor should account for making uart_clock 16x faster than baud
-// rate, so uart_clock / 16 can give the correct tx and rx freq. This is
-// specially useful on RX code because we use a 8 uart_clock delay to sample
-// right in the middle of receiving signal.
-
-
-// uart_clock
-always @ (posedge clk, reset) begin
-	if (reset == HIGH)
-		freq_counter <= 0;
-	else if (freq_counter == (freq_divider / 16) -1) begin
-		uart_clock <= ~uart_clock;
-		freq_counter <= 0;
-	end else
-		freq_counter <= freq_counter + 1;
-end
-		
 
 // tx_clock
 always @ (posedge clk, reset) begin
@@ -332,12 +291,11 @@ always @ (posedge clk, reset) begin
 	end else
 		tx_clock_counter <= tx_clock_counter + 1;
 end
-		
 
 // rx_clock
-// TODO: fix sync
 always @ (posedge clk, reset, sync) begin
 	if (reset == HIGH || sync == HIGH) begin
+		rx_clock <= LOW;
 		rx_clock_counter <= 0;
 		sync <= LOW;
 	end else if (rx_clock_counter == freq_divider -1) begin
@@ -346,8 +304,5 @@ always @ (posedge clk, reset, sync) begin
 	end else
 		rx_clock_counter <= rx_clock_counter + 1;
 end
-
-
-
 
 endmodule
