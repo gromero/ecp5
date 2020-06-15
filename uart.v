@@ -36,7 +36,7 @@ reg [7:0] freq_divider = 78;
 reg [7:0] freq_counter = 0;
 reg uart_clock = LOW;
 
-reg [7:0] tx_clock_counter = 0;
+reg [15:0] tx_clock_counter = 16'b0;
 reg tx_clock = LOW;
 
 reg tx_fifo_pop;
@@ -70,10 +70,10 @@ reg [1:0] wb_state = IDLE;
 
 always @ (posedge clk) begin
   if (reset == 1'b1) begin
-    wb_ack = LOW;
-    wb_state = IDLE;
-    tx_fifo_push = 0;
-    rx_fifo_pop = 0;
+    wb_ack <= LOW;
+    wb_state <= IDLE;
+    tx_fifo_push <= 0;
+    rx_fifo_pop <= 0;
   end
   else
   case (wb_state)
@@ -83,22 +83,22 @@ always @ (posedge clk) begin
           if (wb_we == LOW) begin // write to UART
             case (wb_addr)
               TX_DATA_ADDR: begin
-                              tx_fifo_push = HIGH;
-                              tx_fifo_data_in = wb_data_in;
+                              tx_fifo_push <= HIGH;
+                              tx_fifo_data_in <= wb_data_in;
                             end
-              FREQ_DIV_ADDR: freq_divider = wb_data_in;
+              FREQ_DIV_ADDR: freq_divider <= wb_data_in;
             endcase
-            wb_ack = HIGH;
-            wb_state = WRITE_ACK;
+            wb_ack <= HIGH;
+            wb_state <= WRITE_ACK;
           end else begin         // read from UART
             case (wb_addr)
               RX_DATA_ADDR: begin
-                              rx_fifo_pop = HIGH;
-                              wb_data_out = 8'H42;
+                              rx_fifo_pop <= HIGH;
+                              wb_data_out <= 8'H42;
                             end
             endcase
-            wb_ack = HIGH;
-            wb_state = READ_ACK;
+            wb_ack <= HIGH;
+            wb_state <= READ_ACK;
           end
         end // wb_clk
       end // wb_stb
@@ -108,18 +108,18 @@ always @ (posedge clk) begin
       begin
         tx_fifo_push = LOW;
         if (wb_clk == LOW) begin
-          wb_state = IDLE;
-          wb_ack = LOW;
+          wb_state <= IDLE;
+          wb_ack <= LOW;
         end
       end
 
     /* read ack */
     READ_ACK:
       begin
-        rx_fifo_pop = LOW;
+        rx_fifo_pop <= LOW;
         if (wb_clk == LOW) begin
-          wb_state = IDLE;
-          wb_ack = LOW;
+          wb_state <= IDLE;
+          wb_ack <= LOW;
         end
       end // read ack
   endcase
@@ -157,38 +157,38 @@ fifo tx_fifo0(
 
 always @ (posedge clk) begin
   if (reset == HIGH) begin
-    tx_bit = HIGH; // tx idle bit
-    tx_fifo_pop = LOW;
-    tx_state = IDLE;
+    tx_bit <= HIGH; // tx idle bit
+    tx_fifo_pop <= LOW;
+    tx_state <= IDLE;
   end else begin
     case (tx_state)
       0:
          begin
            if (tx_clock == HIGH && tx_fifo_empty == LOW) begin
-             tx_bit = LOW;  // tx start bit
-             bitz = 0;
-	     tx_fifo_pop = HIGH;
-             tx_state = 1;
+             tx_bit <= LOW;  // tx start bit
+             bitz <= 0;
+	     tx_fifo_pop <= HIGH;
+             tx_state <= 1;
            end else if (tx_clock == HIGH) begin
-             tx_bit = HIGH; // tx idle bit
+             tx_bit <= HIGH; // tx idle bit
            end
          end
 
       1:
          if (tx_fifo_pop == HIGH) begin
-           tx_fifo_pop = LOW;
+           tx_fifo_pop <= LOW;
 	 end else if (tx_clock == HIGH && bitz == 7) begin
-           tx_bit = tx_fifo_data_out[bitz];
-           tx_state = 2;
+           tx_bit <= tx_fifo_data_out[bitz];
+           tx_state <= 2;
          end else if(tx_clock == HIGH) begin
-           tx_bit = tx_fifo_data_out[bitz];
-           bitz = bitz + 1;
+           tx_bit <= tx_fifo_data_out[bitz];
+           bitz <= bitz + 1;
          end
 
       2:
          if (tx_clock == HIGH) begin
-           tx_bit = HIGH; // tx stop bit
-           tx_state = 0;
+           tx_bit <= HIGH; // tx stop bit
+           tx_state <= 0;
          end
     endcase
   end
@@ -229,8 +229,8 @@ fifo rx_fifo0(
 
 always @ (posedge clk) begin
   if (reset == HIGH) begin
-    rx_fifo_push = LOW;
-    rx_state = IDLE_RX;
+    rx_fifo_push <= LOW;
+    rx_state <= IDLE_RX;
   end else begin
 
     case (rx_state)
@@ -256,7 +256,7 @@ always @ (posedge clk) begin
             rx_state <= STOP_BIT;
           end else begin
 //          o_clk <= rx_pin;
-            rx_fifo_data_in[rx_bit_ctr] = rx_bit;
+            rx_fifo_data_in[rx_bit_ctr] <= rx_bit;
             rx_bit_ctr <= rx_bit_ctr + 1'b1;
           end
         end
@@ -287,37 +287,28 @@ end
 // right in the middle of receiving signal.
 always @ (posedge clk) begin
   if (reset == HIGH) begin
-    freq_counter = 0;
+    freq_counter <= 0;
   end
   else begin
     if (freq_counter == freq_divider) begin
-      uart_clock = HIGH;
-      freq_counter = 0;
+      uart_clock <= HIGH;
+      freq_counter <= 0;
     end
     else begin
-      uart_clock = LOW;
-      freq_counter = freq_counter + 1;
+      uart_clock <= LOW;
+      freq_counter <= freq_counter + 1;
     end
   end
 end
 
-// master_clock-->[master_clock/freq_divider]=uart_clock-->[uart_clock/16]=tx_clock
+// "tx_clock" : 9600 OK
 always @ (posedge clk) begin
-  if (reset == HIGH) begin
-    tx_clock_counter = 0;
-  end
-  else if (uart_clock == HIGH) begin
-    tx_clock_counter = tx_clock_counter + 1;
-    if (tx_clock_counter == 16) begin
-       tx_clock_counter = 0;
-       tx_clock = HIGH;
-    end
-    else begin
-      tx_clock = LOW;
-    end
-  end
-  else begin // uart_clock == LOW
-    tx_clock = LOW;
+  if (tx_clock_counter == (1250 - 1)) begin
+    tx_clock <= 1;
+    tx_clock_counter <= 0;
+  end else begin
+    tx_clock <= 0;
+    tx_clock_counter <= tx_clock_counter + 1'b1;
   end
 end
 
