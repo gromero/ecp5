@@ -55,6 +55,8 @@ reg rx_fifo_pop = LOW;
 reg rx_fifo_push = LOW;
 reg [7:0] rx_fifo_data_in;
 wire [7:0] rx_fifo_data_out;
+reg rx_sync = 1'b0;
+reg rx_clock;
 
 // FSM states: idle, read_ack, write_ack
 localparam IDLE = 2'b00;
@@ -92,7 +94,7 @@ always @ (posedge clk) begin
             case (wb_addr)
               RX_DATA_ADDR: begin
                               rx_fifo_pop = HIGH;
-                              wb_data_out = rx_fifo_data_out;
+                              wb_data_out = 8'H42;
                             end
             endcase
             wb_ack = HIGH;
@@ -197,7 +199,7 @@ end
  ******************/
 
 // FSM states:
-localparam IDLE      = 4'b0000;
+localparam IDLE_RX   = 4'b0000;
 localparam START_BIT = 4'b0001;
 localparam RECV      = 4'b0010;
 localparam STOP_BIT  = 4'b0011;
@@ -228,17 +230,17 @@ fifo rx_fifo0(
 always @ (posedge clk) begin
   if (reset == HIGH) begin
     rx_fifo_push = LOW;
-    rx_state = IDLE;
+    rx_state = IDLE_RX;
   end else begin
 
     case (rx_state)
-      IDLE:
+      IDLE_RX:
       begin
         if (rx_fifo_push == HIGH) begin
           rx_fifo_push <= LOW;
         end
 
-        if (!rx_pin && rx_clock) begin
+        if (!rx_bit && rx_clock) begin
           rx_bit_ctr <= 1'b0;
           rx_state <= START_BIT;
         end
@@ -260,12 +262,12 @@ always @ (posedge clk) begin
         end
       end
 
-     STOP_BIT
+     STOP_BIT:
      begin
        if (rx_clock) begin
          rx_fifo_push <= HIGH;
 //       o_clk <= LOW;
-         rx_state <= IDLE;
+         rx_state <= IDLE_RX;
        end
      end
 
@@ -320,7 +322,7 @@ always @ (posedge clk) begin
 end
 
 // "rx_clock" : 9600 OK
-always @ (posedge i_clk) begin
+always @ (posedge clk) begin
   if (rx_sync) begin
     rx_sync <= 0;
     rx_clock_counter <= 0;
