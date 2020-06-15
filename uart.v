@@ -94,7 +94,7 @@ always @ (posedge clk) begin
             case (wb_addr)
               RX_DATA_ADDR: begin
                               rx_fifo_pop <= HIGH;
-                              wb_data_out <= 8'H42;
+                              wb_data_out <= rx_fifo_data_out;
                             end
             endcase
             wb_ack <= HIGH;
@@ -206,9 +206,9 @@ localparam STOP_BIT  = 4'b0011;
 localparam END       = 4'b0100;
 
 reg [15:0] rx_clock_counter = 16'b0;
-reg [3:0] rx_state = IDLE;
+reg [3:0] rx_state = IDLE_RX;
 reg rx_uart_clock;
-reg [7:0] rx_bit_ctr = 1'b0;
+reg [7:0] rx_bit_ctr = 8'b0;
 
 wire rx_fifo_empty;
 wire rx_fifo_full; // NC
@@ -251,16 +251,18 @@ always @ (posedge clk) begin
         if (rx_clock) begin
           if (rx_bit_ctr == (8 - 1)) begin
 //          o_clk <= rx_pin;
-//          rx_fifo_data_in[rx_bit_ctr] = rx_bit;
-            rx_fifo_data_in <= 8'H41;
+            rx_fifo_data_in[rx_bit_ctr] <= rx_bit;
+//          rx_fifo_data_in <= 8'H41;
+//          rx_fifo_push <= HIGH;
             rx_state <= STOP_BIT;
           end else begin
 //          o_clk <= rx_pin;
             rx_fifo_data_in[rx_bit_ctr] <= rx_bit;
+//          rx_fifo_data_in <= 8'H41;
             rx_bit_ctr <= rx_bit_ctr + 1'b1;
           end
         end
-      end
+     end
 
      STOP_BIT:
      begin
