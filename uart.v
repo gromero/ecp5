@@ -15,7 +15,7 @@ module uart(input clk, input reset,
             input wb_we,
             input wb_clk,
             input wb_stb,
-            output probe0, 
+            output reg probe0, 
             output reg wb_ack);
 
 localparam TX_DATA_ADDR = 2'b00;

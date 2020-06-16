@@ -20,6 +20,7 @@ reg cs;
 wire ack_bit;
 reg rxd = 1;
 
+
   initial begin
     $dumpfile("uart_dumpfile.vcd");
     $dumpvars(0, uart_sim_tl, serial0, serial0.tx_fifo0);
@@ -36,12 +37,39 @@ reg rxd = 1;
     #(2*1248) rxd = 0;
     #(2*1248) rxd = 1; // stop bit
 
+/*
+    #3000 data_addr = 1; // RX_ADDR
+    #100 we = 1;         // READ
+    #100 cs = 1;         // CS
+    #100 wb_clock = 1;   // 1 cycle to wishbone bus
+    #100 wb_clock = 0;
+*/
+
+    // Send 0x47 'G' 0b0100_0111
+    #4000 rxd = 0;            // start bit
+    #(2*1248) rxd = 1;
+    #(2*1248) rxd = 1;
+    #(2*1248) rxd = 1;
+    #(2*1248) rxd = 1;
+    #(2*1248) rxd = 1;
+    #(2*1248) rxd = 1;
+    #(2*1248) rxd = 1;
+    #(2*1248) rxd = 0;
+    #(2*1248) rxd = 1; // stop bit
+
+    // POP 1
     #3000 data_addr = 1; // RX_ADDR
     #100 we = 1;         // READ
     #100 cs = 1;         // CS
     #100 wb_clock = 1;   // 1 cycle to wishbone bus
     #100 wb_clock = 0;
 
+    // POP 2
+    #3000 data_addr = 1; // RX_ADDR
+    #100 we = 1;         // READ
+    #100 cs = 1;         // CS
+    #100 wb_clock = 1;   // 1 cycle to wishbone bus
+    #100 wb_clock = 0;
 /*
     #10 data_addr = 0;
     #10 data_in = 68; // 'B'
@@ -79,6 +107,7 @@ uart serial0(
   .wb_we(we),             // read/write bit, only write is current supported
   .wb_clk(wb_clock),      // bus clock
   .wb_stb(cs),            // chip select
-  .wb_ack(ack_bit));      // ACK, currently not used
+  .probe0(probe0),
+  .wb_ack(x));      // ACK, currently not used
 
 endmodule
