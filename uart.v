@@ -89,19 +89,26 @@ always @ (posedge clk) begin
         if (wb_clk == HIGH) begin
           if (wb_we == LOW) begin // write to UART
             case (wb_addr)
-              TX_DATA_ADDR: begin
-                              tx_fifo_push <= HIGH;
-                              tx_fifo_data_in <= wb_data_in;
-                            end
-              FREQ_DIV_ADDR: freq_divider <= wb_data_in;
+              TX_DATA_ADDR:
+              begin
+                tx_fifo_push <= HIGH;
+                tx_fifo_data_in <= wb_data_in;
+              end
+ 
+              FREQ_DIV_ADDR:
+              begin
+                freq_divider <= wb_data_in;
+              end
             endcase
             wb_ack <= HIGH;
             wb_state <= WRITE_ACK;
+
           end else begin         // read from UART
             case (wb_addr)
-              RX_DATA_ADDR: begin
-                              rx_fifo_pop <= HIGH;
-                            end
+              RX_DATA_ADDR:
+              begin
+                rx_fifo_pop <= HIGH;
+              end
             endcase
             wb_ack <= HIGH;
             wb_state <= READ;
@@ -109,33 +116,32 @@ always @ (posedge clk) begin
         end // wb_clk
       end // wb_stb
 
-    /* write ack */
+    /* Write ack for a write */
     WRITE_ACK:
       begin
         tx_fifo_push <= LOW;
         if (wb_clk == LOW) begin
-          wb_state <= IDLE;
           wb_ack <= LOW;
+          wb_state <= IDLE;
         end
       end
 
-    /* read */
+    /* Read from FIFO */
     READ:
     begin
       wb_data_out <= rx_fifo_data_out;
       wb_state <= READ_ACK;
     end
 
-    /* read ack */
+    /* Write ack for a read */
     READ_ACK:
     begin
       rx_fifo_pop <= LOW;
       if (wb_clk == LOW) begin
-        wb_state <= IDLE;
         wb_ack <= LOW;
+        wb_state <= IDLE;
       end
     end
-
   endcase
  end
 end
@@ -258,6 +264,8 @@ always @ (posedge clk) begin
           if (rx_bit_ctr == (8 - 1)) begin
 //          probe0 <= rx_bit; // OK!
             rx_fifo_data_in[rx_bit_ctr] <= rx_bit;
+            // XXX: Why asserting HIGH here doesn't
+            // conflict with assignment above?
             rx_fifo_push <= HIGH;
             rx_state <= STOP_BIT;
           end else begin
@@ -279,8 +287,6 @@ always @ (posedge clk) begin
 
     endcase
 end
-
-// assign probe0 = rx_clock;
 
 /**********************
  *  CLOCK GENERATORS  *
