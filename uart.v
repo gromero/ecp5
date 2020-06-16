@@ -65,6 +65,7 @@ reg rx_clock;
 localparam IDLE = 2'b00;
 localparam READ_ACK = 2'b01;
 localparam WRITE_ACK = 2'b10;
+localparam READ = 2'b11;
 reg [1:0] wb_state = IDLE;
 
 /************************
@@ -100,11 +101,10 @@ always @ (posedge clk) begin
             case (wb_addr)
               RX_DATA_ADDR: begin
                               rx_fifo_pop <= HIGH;
-                              // wb_data_out <= rx_buffer; // Works OK!
                             end
             endcase
             wb_ack <= HIGH;
-            wb_state <= READ_ACK;
+            wb_state <= READ;
           end
         end // wb_clk
       end // wb_stb
@@ -119,15 +119,23 @@ always @ (posedge clk) begin
         end
       end
 
+    /* read */
+    READ:
+    begin
+      wb_data_out <= rx_fifo_data_out;
+      wb_state <= READ_ACK;
+    end
+
     /* read ack */
     READ_ACK:
-      begin
-        wb_data_out <= rx_fifo_data_out; 
-        if (wb_clk == LOW) begin
-          wb_state <= IDLE;
-          wb_ack <= LOW;
-        end
-      end // read ack
+    begin
+      rx_fifo_pop <= LOW;
+      if (wb_clk == LOW) begin
+        wb_state <= IDLE;
+        wb_ack <= LOW;
+      end
+    end
+
   endcase
  end
 end
@@ -248,19 +256,13 @@ always @ (posedge clk) begin
       begin
         if (rx_clock) begin
           if (rx_bit_ctr == (8 - 1)) begin
-//          o_clk <= rx_bit;
-            probe0 <= rx_bit; // OK!
+//          probe0 <= rx_bit; // OK!
             rx_fifo_data_in[rx_bit_ctr] <= rx_bit;
-            rx_buffer[rx_bit_ctr] <= rx_bit;
-//          rx_fifo_data_in <= 8'H41;
             rx_fifo_push <= HIGH;
             rx_state <= STOP_BIT;
           end else begin
-//          o_clk <= rx_bit; 
-            probe0 <= rx_bit;  // OK!
+//          probe0 <= rx_bit; // OK!
             rx_fifo_data_in[rx_bit_ctr] <= rx_bit;
-            rx_buffer[rx_bit_ctr] <= rx_bit;
-//          rx_fifo_data_in <= 8'H41;
             rx_bit_ctr <= rx_bit_ctr + 1'b1;
           end
         end
@@ -270,8 +272,7 @@ always @ (posedge clk) begin
      begin
        rx_fifo_push <= LOW;
        if (rx_clock) begin
-//       o_clk <= LOW;
-         probe0 <= LOW; // OK!
+//       probe0 <= LOW; // OK!
          rx_state <= IDLE_RX;
        end
      end
