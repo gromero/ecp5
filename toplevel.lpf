@@ -91,6 +91,9 @@ IOBUF PORT "unused[0]" IO_TYPE=LVCMOS33;
 IOBUF PORT "unused[0]" IO_TYPE=LVCMOS33;
 IOBUF PORT "unused[0]" IO_TYPE=LVCMOS33;
 
+#  LOCATE COMP "probe0" SITE "L20"; #
+# IOBUF PORT "probe0" IO_TYPE=LVCMOS33;
+
 #### NC to RPi, R32 and R33 are not soldered
 # LOCATE COMP "unused[1]" SITE "L18"; # RASP_ID_SD
 # LOCATE COMP "unused[2]" SITE "L17"; # RASP_ID_SC

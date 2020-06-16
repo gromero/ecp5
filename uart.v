@@ -15,6 +15,7 @@ module uart(input clk, input reset,
             input wb_we,
             input wb_clk,
             input wb_stb,
+            output probe0, 
             output reg wb_ack);
 
 localparam TX_DATA_ADDR = 2'b00;
@@ -228,17 +229,12 @@ fifo rx_fifo0(
   .empty(rx_fifo_empty)); // XXX: 'empty' flag is not connected
 
 always @ (posedge clk) begin
-  if (reset == HIGH) begin
-    rx_fifo_push <= LOW;
-    rx_state <= IDLE_RX;
-  end else begin
-
     case (rx_state)
       IDLE_RX:
       begin
-        if (rx_fifo_push == HIGH) begin
-          rx_fifo_push <= LOW;
-        end
+//        if (rx_fifo_push == HIGH) begin
+//          rx_fifo_push <= LOW;
+//        end
 
         if (!rx_bit && rx_clock) begin
           rx_bit_ctr <= 1'b0;
@@ -250,13 +246,15 @@ always @ (posedge clk) begin
       begin
         if (rx_clock) begin
           if (rx_bit_ctr == (8 - 1)) begin
-//          o_clk <= rx_pin;
+//          o_clk <= rx_bit;
+            probe0 <= rx_bit; // OK!
             rx_fifo_data_in[rx_bit_ctr] <= rx_bit;
 //          rx_fifo_data_in <= 8'H41;
-//          rx_fifo_push <= HIGH;
+            rx_fifo_push <= HIGH;
             rx_state <= STOP_BIT;
           end else begin
-//          o_clk <= rx_pin;
+//          o_clk <= rx_bit; 
+            probe0 <= rx_bit;  // OK!
             rx_fifo_data_in[rx_bit_ctr] <= rx_bit;
 //          rx_fifo_data_in <= 8'H41;
             rx_bit_ctr <= rx_bit_ctr + 1'b1;
@@ -266,16 +264,18 @@ always @ (posedge clk) begin
 
      STOP_BIT:
      begin
+       rx_fifo_push <= LOW;
        if (rx_clock) begin
-         rx_fifo_push <= HIGH;
 //       o_clk <= LOW;
+         probe0 <= LOW; // OK!
          rx_state <= IDLE_RX;
        end
      end
 
     endcase
-  end
 end
+
+// assign probe0 = rx_clock;
 
 /**********************
  *  CLOCK GENERATORS  *
@@ -316,11 +316,6 @@ end
 
 // "rx_clock" : 9600 OK
 always @ (posedge clk) begin
-  if (rx_sync) begin
-    rx_sync <= 0;
-    rx_clock_counter <= 0;
-  end
-  else begin
   if (rx_clock_counter == (1250 - 1)) begin
     rx_clock <= 1;
     rx_clock_counter <= 0;
@@ -330,6 +325,5 @@ always @ (posedge clk) begin
     rx_clock_counter <= rx_clock_counter + 1'b1;
   end
  end
-end
 
 endmodule

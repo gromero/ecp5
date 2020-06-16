@@ -17,6 +17,7 @@ module toplevel(input ref_clk, input reset,
 
 // wire reset;
 // assign reset = ~reset_n; // button pressed is '0', but reset is '1'
+wire probe0;
 
 uart serial0(
   .clk(ref_clk),          // reference clock = 12 MHz
@@ -29,6 +30,7 @@ uart serial0(
   .wb_we(we),             // read/write bit, only write is current supported
   .wb_clk(clk),           // bus clock
   .wb_stb(cs),            // chip select
+  .probe0(probe0),        // probe0
   .wb_ack(ack));          // ACK, currently not used
 
 assign led[1:0] = addr[1:0];
@@ -37,7 +39,7 @@ assign led[3]   = clk;
 assign led[4]   = cs;
 assign led[5]   = tx_bit;
 assign led[6]   = rx_bit;
-assign led[7]   = ack;
+assign led[7]   = probe0;
 
 // assign unused = z;
 
