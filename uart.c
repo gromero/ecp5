@@ -1,6 +1,8 @@
 #include <wiringPi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <inttypes.h>
+#include <string.h>
 
 // IO "semantics" in this code:
 // DATA_OUT: from RPi3 ---- to ----> FPGA
@@ -19,6 +21,7 @@
 #define DATA_BUS_SIZE 8
 
 #define TX_ADDR 0x00
+#define RX_ADDR 0x01
 #define FREQ_DIV 0x02
 #define ADDR_BUS_SIZE 2
 
@@ -148,11 +151,12 @@ void prinDatain(int data) {
  printf("DATA_IN = %#x\n", data & 0xFF);
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
   int r;
   int data_in;
   char message[] = "Hello cruel world";
   int i;
+  uint8_t in_byte;
 
 
   r = setupPins();
@@ -161,20 +165,42 @@ int main(void) {
     exit(1);
   }
 
-  set(RESET);
-  clock();
-  unset(RESET);
+//  set(RESET);
+//  clock();
+//  unset(RESET);
 
-//printf("ACK: %d\n", get(ACK));
+
+  if (argc == 1) goto first;
+  else if (argc == 2) {
+     if (strcmp(argv[1], "-w")  == 0) {
+       goto first;  
+     }
+     else if (strcmp(argv[1], "-r") == 0) {
+       goto second;
+     }
+     else {
+       printf("Unknown flag: %s\n", argv[1]);
+       exit(1);
+     }
+  } else {
+    printf("Wrong number of parameters\n");
+    exit(1);
+  }
+
+goto second;
+
+first:
+printf("** WRITE TO WB BUS **\n"); 
+
 loop:
   for (i = 'a'; i < 'a'+26 ; i++) {
     setAddr(TX_ADDR);
-    dataOut(i);
-    printf("%c\n", i);
+    dataOut('A');
+    printf("%c\n", 'A');
     unset(WE); // !WE => write
     set(CS);
     clock();
-    delay(DELAY);
+//    delay(DELAY);
   }
 goto loop;
 
@@ -182,4 +208,15 @@ goto loop;
   clock();
 
 //delay(DELAY);
+second: 
+   printf("** READ FROM WB BUS **\n");
+   setAddr(RX_ADDR);
+   set(WE); // read, since WE_  
+   set(CS); // select UART chip
+   clock();
+   in_byte = dataIn();  
+   unset(CS); // get ACK set
+   clock();
+
+   printf("%0x %c\n", in_byte, in_byte);
 }
