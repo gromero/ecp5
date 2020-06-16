@@ -238,10 +238,6 @@ always @ (posedge clk) begin
     case (rx_state)
       IDLE_RX:
       begin
-        if (rx_fifo_push == HIGH) begin
-          rx_fifo_push <= LOW;
-        end
-
         if (!rx_bit && rx_clock) begin
           rx_bit_ctr <= 1'b0;
           rx_state <= START_BIT;
@@ -272,7 +268,7 @@ always @ (posedge clk) begin
 
      STOP_BIT:
      begin
-//       rx_fifo_push <= LOW;
+       rx_fifo_push <= LOW;
        if (rx_clock) begin
 //       o_clk <= LOW;
          probe0 <= LOW; // OK!
