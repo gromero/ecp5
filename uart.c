@@ -98,10 +98,11 @@ int dataIn(void) {
   int d = 0;
   int bit;
 
-  for (i = DATA_BUS_SIZE-1; i >= 0; i--) {
+  for (i = 0; i < DATA_BUS_SIZE; i++) {
     bit = digitalRead(data_in[i]);
     d |= bit << i;
   }
+
   return d;
 }
 
