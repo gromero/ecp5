@@ -26,50 +26,49 @@ integer bottom = 0;
 reg last_op = POP;
 
 always @ (negedge clk) begin
-
   if (reset == 1'b1) begin
-    data_out = 1'bz;
-    top = 0;
-    bottom = 0;
+    data_out <= 1'bz;
+    top <= 0;
+    bottom <= 0;
   end
   else begin
     if (push == 1'b1) begin
-      memory[top] = data_in;
-      top = (top + 1) % DEPTH;
+      memory[top] <= data_in;
+      top <= (top + 1) % DEPTH;
     end
 
     else if (pop == 1'b1) begin
-      data_out = memory[bottom];
-      bottom = (bottom + 1) % DEPTH;
+      data_out <= memory[bottom];
+      bottom <= (bottom + 1) % DEPTH;
     end
   end
 end
 
 always @ (negedge clk) begin
   if (reset == HIGH) begin
-    last_op = POP;
+    last_op <= POP;
   end
   else begin
     if (push == HIGH)
-      last_op = PUSH;
+      last_op <= PUSH;
     else if (pop == HIGH)
-      last_op = POP;
+      last_op <= POP;
     else if (push == HIGH && pop == HIGH)
-      last_op = POP;
+      last_op <= POP;
   end
 end
 
 always @ (top, bottom, last_op) begin
 
 if (top == bottom && last_op == PUSH)
-  full = HIGH;
+  full <= HIGH;
 else
-  full = LOW;
+  full <= LOW;
 
 if (top == bottom && last_op == POP)
-  empty = HIGH;
+  empty <= HIGH;
 else
-  empty = LOW;
+  empty <= LOW;
 end
 
 endmodule
