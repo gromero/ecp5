@@ -25,7 +25,7 @@ integer top = 0;
 integer bottom = 0;
 reg last_op = POP;
 
-always @ (negedge clk) begin
+always @ (posedge clk) begin
   if (reset == 1'b1) begin
     data_out <= 1'bz;
     top <= 0;
@@ -44,7 +44,7 @@ always @ (negedge clk) begin
   end
 end
 
-always @ (negedge clk) begin
+always @ (posedge clk) begin
   if (reset == HIGH) begin
     last_op <= POP;
   end
