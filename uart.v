@@ -45,6 +45,8 @@ reg tx_fifo_push;
 reg [7:0] tx_fifo_data_in;
 wire [7:0] tx_fifo_data_out;
 
+reg [7:0] rx_buffer = 8'H41;
+
 // reg [10:0] rx_clock_counter = 0;
 // reg [10:0] rx_uart_clock_counter = 0;
 // reg [10:0] rx_uart_clock_counter_tmp = 0;
@@ -95,7 +97,7 @@ always @ (posedge clk) begin
             case (wb_addr)
               RX_DATA_ADDR: begin
                               rx_fifo_pop <= HIGH;
-                              wb_data_out <= rx_fifo_data_out;
+                              wb_data_out <= rx_buffer;
                             end
             endcase
             wb_ack <= HIGH;
@@ -107,7 +109,7 @@ always @ (posedge clk) begin
     /* write ack */
     WRITE_ACK:
       begin
-        tx_fifo_push = LOW;
+        tx_fifo_push <= LOW;
         if (wb_clk == LOW) begin
           wb_state <= IDLE;
           wb_ack <= LOW;
@@ -248,14 +250,16 @@ always @ (posedge clk) begin
           if (rx_bit_ctr == (8 - 1)) begin
 //          o_clk <= rx_bit;
             probe0 <= rx_bit; // OK!
-            rx_fifo_data_in[rx_bit_ctr] <= rx_bit;
+//          rx_fifo_data_in[rx_bit_ctr] <= rx_bit;
+            rx_buffer[rx_bit_ctr] <= rx_bit;
 //          rx_fifo_data_in <= 8'H41;
             rx_fifo_push <= HIGH;
             rx_state <= STOP_BIT;
           end else begin
 //          o_clk <= rx_bit; 
             probe0 <= rx_bit;  // OK!
-            rx_fifo_data_in[rx_bit_ctr] <= rx_bit;
+//          rx_fifo_data_in[rx_bit_ctr] <= rx_bit;
+            rx_buffer[rx_bit_ctr] <= rx_bit;
 //          rx_fifo_data_in <= 8'H41;
             rx_bit_ctr <= rx_bit_ctr + 1'b1;
           end
