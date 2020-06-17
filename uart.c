@@ -192,31 +192,28 @@ goto second;
 first:
 printf("** WRITE TO WB BUS **\n"); 
 
-loop:
-  for (i = 'a'; i < 'a'+26 ; i++) {
+  for (i = 'A'; i < 'A'+26 ; i++) {
     setAddr(TX_ADDR);
-    dataOut('A');
-    printf("%c\n", 'A');
+    dataOut(i);
+    printf("%c\n", i);
     unset(WE); // !WE => write
     set(CS);
     clock();
-//    delay(DELAY);
+//  delay(DELAY);
   }
-goto loop;
 
   unset(CS); // get ACK set
-  clock();
+  exit(0);
 
 //delay(DELAY);
 second: 
    printf("** READ FROM WB BUS **\n");
    setAddr(RX_ADDR);
-   set(WE); // read, since WE_  
+   set(WE); // read
    set(CS); // select UART chip
    clock();
    in_byte = dataIn();  
-   unset(CS); // get ACK set
-   clock();
+   unset(CS); // deselect chip
 
    printf("%0x %c\n", in_byte, in_byte);
 }
