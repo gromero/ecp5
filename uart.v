@@ -33,8 +33,8 @@ localparam LOW = 1'b0;
  * the derived clocks from master clock.
  */
 
-reg [7:0] freq_divider = 78;
-reg [7:0] freq_counter = 0;
+reg [11:0] freq_divider = 1250;
+reg [11:0] freq_counter = 0;
 reg uart_clock = LOW;
 
 reg [15:0] tx_clock_counter = 16'b0;
@@ -255,7 +255,7 @@ always @ (posedge clk) begin
 
       START_BIT:
       begin
-        if (rx_clock) begin
+        if (tx_clock) begin
           if (rx_bit_ctr == (8 - 1)) begin
 //          probe0 <= rx_bit; // OK!
             rx_fifo_data_in[rx_bit_ctr] <= rx_bit;
@@ -274,7 +274,7 @@ always @ (posedge clk) begin
      STOP_BIT:
      begin
        rx_fifo_push <= LOW;
-       if (rx_clock) begin
+       if (tx_clock) begin
 //       probe0 <= LOW; // OK!
          rx_state <= IDLE_RX;
        end
@@ -311,7 +311,7 @@ end
 
 // "tx_clock" : 9600 OK
 always @ (posedge clk) begin
-  if (tx_clock_counter == (1250 - 1)) begin
+  if (tx_clock_counter == (freq_divider - 1)) begin
     tx_clock <= 1;
     tx_clock_counter <= 0;
   end else begin
