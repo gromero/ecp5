@@ -15,7 +15,7 @@ module uart(input clk, input reset,
             input wb_we,
             input wb_clk,
             input wb_stb,
-            output reg probe0, 
+            output reg probe0,
             output reg wb_ack);
 
 localparam TX_DATA_ADDR = 2'b00;
@@ -73,51 +73,49 @@ reg [1:0] wb_state = IDLE;
  ************************/
 
 always @ (posedge clk) begin
-  if (reset == 1'b1) begin
+  if (reset) begin
     wb_ack <= LOW;
     wb_state <= IDLE;
-    tx_fifo_push <= 0;
-    rx_fifo_pop <= 0;
-  end
-  else if (rx_fifo_pop == HIGH) begin
+    tx_fifo_push <= LOW;
     rx_fifo_pop <= LOW;
   end else begin
+    case (wb_state)
+      IDLE:
+      // check if chip is selected and clock is high
+      if (wb_stb && wb_clk) begin
+        if (wb_we == LOW) begin // ** WRITE **
+          // select register
+          case (wb_addr)
+            TX_DATA_ADDR:
+            begin
+              tx_fifo_push <= HIGH;
+              tx_fifo_data_in <= wb_data_in;
+            end
 
-  case (wb_state)
-    IDLE:
-      if (wb_stb == HIGH) begin
-        if (wb_clk == HIGH) begin
-          if (wb_we == LOW) begin // write to UART
-            case (wb_addr)
-              TX_DATA_ADDR:
-              begin
-                tx_fifo_push <= HIGH;
-                tx_fifo_data_in <= wb_data_in;
-              end
- 
-              FREQ_DIV_ADDR:
-              begin
-                freq_divider <= wb_data_in;
-              end
-            endcase
-            wb_ack <= HIGH;
-            wb_state <= WRITE_ACK;
+            FREQ_DIV_ADDR:
+            begin
+              freq_divider <= wb_data_in;
+            end
+          endcase
 
-          end else begin         // read from UART
-            case (wb_addr)
-              RX_DATA_ADDR:
-              begin
-                rx_fifo_pop <= HIGH;
-              end
-            endcase
-            wb_ack <= HIGH;
-            wb_state <= READ_ACK;
-          end
-        end // wb_clk
-      end // wb_stb
+          wb_ack <= HIGH;
+          wb_state <= WRITE_ACK;
+        end else begin        // ** READ **
+          // select register
+          case (wb_addr)
+            RX_DATA_ADDR:
+            begin
+              rx_fifo_pop <= HIGH;
+            end
+          endcase
 
-    /* Write ack for a write */
-    WRITE_ACK:
+          wb_ack <= HIGH;
+          wb_state <= READ_ACK;
+        end
+      end // wb_stb && wb_clk
+
+      /* Write ack (0 state) for a write operation */
+      WRITE_ACK:
       begin
         tx_fifo_push <= LOW;
         if (wb_clk == LOW) begin
@@ -126,20 +124,21 @@ always @ (posedge clk) begin
         end
       end
 
-    /* Write ack for a read */
-    READ_ACK:
-    begin
-      // XXX: What wb_data_out gets on the next where
-      // rx_fifo_pop became LOW and FIFO is not popping?
-      wb_data_out <= rx_fifo_data_out;
-      rx_fifo_pop <= LOW;
-      if (wb_clk == LOW) begin
-        wb_ack <= LOW;
-        wb_state <= IDLE;
+      /* Grab data from FIFO and write ack (0 state) for a read operation */
+      READ_ACK:
+      begin
+        // XXX: What wb_data_out gets on the next cycle when
+        // rx_fifo_pop became LOW and FIFO is not popping,
+        // i.e. before it goes back to IDLE (wb_clk turns LOW)?
+        wb_data_out <= rx_fifo_data_out;
+        rx_fifo_pop <= LOW;
+        if (wb_clk == LOW) begin
+          wb_ack <= LOW;
+          wb_state <= IDLE;
+        end
       end
-    end
-  endcase
- end
+    endcase
+  end
 end
 
 /******************
