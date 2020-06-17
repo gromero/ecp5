@@ -111,7 +111,7 @@ always @ (posedge clk) begin
               end
             endcase
             wb_ack <= HIGH;
-            wb_state <= READ;
+            wb_state <= READ_ACK;
           end
         end // wb_clk
       end // wb_stb
@@ -126,16 +126,12 @@ always @ (posedge clk) begin
         end
       end
 
-    /* Read from FIFO */
-    READ:
-    begin
-      wb_data_out <= rx_fifo_data_out;
-      wb_state <= READ_ACK;
-    end
-
     /* Write ack for a read */
     READ_ACK:
     begin
+      // XXX: What wb_data_out gets on the next where
+      // rx_fifo_pop became LOW and FIFO is not popping?
+      wb_data_out <= rx_fifo_data_out;
       rx_fifo_pop <= LOW;
       if (wb_clk == LOW) begin
         wb_ack <= LOW;
