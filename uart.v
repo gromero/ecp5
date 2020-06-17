@@ -25,51 +25,30 @@ localparam FREQ_DIV_ADDR = 2'b10;
 localparam HIGH = 1'b1;
 localparam LOW = 1'b0;
 
-/*
- * Default baudrate is 9600 8N1, i.e. master clock (external) is 12 MHz,
- * hence 12000000/78/16 = 9615.385 = 9600 bps, where 78 is the default
- * value set in 'freq_divider' register and 16 is the fixed divider used
- * to make the tx_clock and rx_clock signals (9600). See comment about
- * the derived clocks from master clock.
- */
-
+// Default: 12 MHz / 1250 = 9600 8N1
 reg [11:0] freq_divider = 1250;
-reg [11:0] freq_counter = 0;
+reg [15:0] uart_clock_counter = 16'b0;
 reg uart_clock = LOW;
 
-reg [15:0] tx_clock_counter = 16'b0;
-reg tx_clock = LOW;
-
-reg tx_fifo_pop;
-reg tx_fifo_push;
+reg tx_fifo_pop = LOW;
+reg tx_fifo_push = LOW;
 reg [7:0] tx_fifo_data_in;
 wire [7:0] tx_fifo_data_out;
-
-reg [7:0] rx_buffer = 8'H41;
-
-// reg [10:0] rx_clock_counter = 0;
-// reg [10:0] rx_uart_clock_counter = 0;
-// reg [10:0] rx_uart_clock_counter_tmp = 0;
-// reg rx_clock = LOW;
-// reg [10:0] rx_uart_clock = 0;
-// reg sync = 0;
 
 reg rx_fifo_pop = LOW;
 reg rx_fifo_push = LOW;
 reg [7:0] rx_fifo_data_in;
 wire [7:0] rx_fifo_data_out;
-reg rx_sync = 1'b0;
-reg rx_clock;
 
-// FSM states: idle, read_ack, write_ack
-localparam IDLE = 2'b00;
-localparam READ_ACK = 2'b01;
+// FSM states:
+localparam IDLE      = 2'b00;
+localparam READ_ACK  = 2'b01;
 localparam WRITE_ACK = 2'b10;
-localparam READ = 2'b11;
+localparam READ      = 2'b11;
 reg [1:0] wb_state = IDLE;
 
 /************************
- *  Wishbone Interface  *
+ *  Wishbone interface  *
  ************************/
 
 always @ (posedge clk) begin
@@ -145,11 +124,13 @@ end
  *  UART TX part  *
  ******************/
 
-// FSM states: IDLE, SEND, STOP
-localparam SEND = 2'b01;
-localparam STOP = 2'b10;
+// FSM states:
+localparam IDLE_TX = 2'b00;
+localparam SEND    = 2'b01;
+localparam STOP    = 2'b10;
 reg [1:0] tx_state = IDLE;
-reg [2:0] tx_bit_counter = 0;
+
+reg [2:0] tx_bit_ctr = 0;
 
 wire tx_fifo_empty;
 wire tx_fifo_full; // NC
@@ -157,9 +138,6 @@ wire tx_fifo_full; // NC
 /*************
  *  TX FIFO  *
  *************/
-
-// TODO: use tx_bit_counter above instead
-reg [2:0] bitz = 0;
 
 fifo tx_fifo0(
   .clk(clk),
@@ -178,34 +156,34 @@ always @ (posedge clk) begin
     tx_state <= IDLE;
   end else begin
     case (tx_state)
-      0:
-         begin
-           if (tx_clock == HIGH && tx_fifo_empty == LOW) begin
-             tx_bit <= LOW;  // tx start bit
-             bitz <= 0;
-	     tx_fifo_pop <= HIGH;
-             tx_state <= 1;
-           end else if (tx_clock == HIGH) begin
-             tx_bit <= HIGH; // tx idle bit
-           end
-         end
+      IDLE_TX:
+      begin
+        if (uart_clock == HIGH && tx_fifo_empty == LOW) begin
+          tx_bit <= LOW;  // tx start bit
+          tx_bit_ctr <= 0;
+          tx_fifo_pop <= HIGH;
+          tx_state <= SEND;
+        end else if (uart_clock == HIGH) begin
+          tx_bit <= HIGH; // tx idle bit
+        end
+      end
 
-      1:
-         if (tx_fifo_pop == HIGH) begin
-           tx_fifo_pop <= LOW;
-	 end else if (tx_clock == HIGH && bitz == 7) begin
-           tx_bit <= tx_fifo_data_out[bitz];
-           tx_state <= 2;
-         end else if(tx_clock == HIGH) begin
-           tx_bit <= tx_fifo_data_out[bitz];
-           bitz <= bitz + 1;
-         end
+      SEND:
+        if (tx_fifo_pop == HIGH) begin
+          tx_fifo_pop <= LOW;
+        end else if (uart_clock == HIGH && tx_bit_ctr == (8 - 1)) begin
+          tx_bit <= tx_fifo_data_out[tx_bit_ctr];
+          tx_state <= STOP;
+        end else if(uart_clock == HIGH) begin
+          tx_bit <= tx_fifo_data_out[tx_bit_ctr];
+          tx_bit_ctr <= tx_bit_ctr + 1;
+        end
 
-      2:
-         if (tx_clock == HIGH) begin
-           tx_bit <= HIGH; // tx stop bit
-           tx_state <= 0;
-         end
+      STOP:
+        if (uart_clock == HIGH) begin
+          tx_bit <= HIGH; // tx stop bit
+          tx_state <= IDLE_TX;
+        end
     endcase
   end
 end
@@ -220,14 +198,12 @@ localparam START_BIT = 4'b0001;
 localparam RECV      = 4'b0010;
 localparam STOP_BIT  = 4'b0011;
 localparam END       = 4'b0100;
-
-reg [15:0] rx_clock_counter = 16'b0;
 reg [3:0] rx_state = IDLE_RX;
-reg rx_uart_clock;
+
 reg [7:0] rx_bit_ctr = 8'b0;
 
-wire rx_fifo_empty;
-wire rx_fifo_full; // NC
+wire rx_fifo_empty; // NC
+wire rx_fifo_full;  // NC
 
 /*************
  *  RX FIFO  *
@@ -240,14 +216,14 @@ fifo rx_fifo0(
   .pop(rx_fifo_pop),
   .data_in(rx_fifo_data_in),
   .data_out(rx_fifo_data_out),
-  .full(rx_fifo_full),
+  .full(rx_fifo_full),    // FIXME: 'full' flag is not used!
   .empty(rx_fifo_empty)); // XXX: 'empty' flag is not connected
 
 always @ (posedge clk) begin
     case (rx_state)
       IDLE_RX:
       begin
-        if (!rx_bit && rx_clock) begin
+        if (!rx_bit && uart_clock) begin
           rx_bit_ctr <= 1'b0;
           rx_state <= START_BIT;
         end
@@ -255,7 +231,7 @@ always @ (posedge clk) begin
 
       START_BIT:
       begin
-        if (tx_clock) begin
+        if (uart_clock) begin
           if (rx_bit_ctr == (8 - 1)) begin
 //          probe0 <= rx_bit; // OK!
             rx_fifo_data_in[rx_bit_ctr] <= rx_bit;
@@ -274,7 +250,7 @@ always @ (posedge clk) begin
      STOP_BIT:
      begin
        rx_fifo_push <= LOW;
-       if (tx_clock) begin
+       if (uart_clock) begin
 //       probe0 <= LOW; // OK!
          rx_state <= IDLE_RX;
        end
@@ -283,53 +259,19 @@ always @ (posedge clk) begin
     endcase
 end
 
-/**********************
- *  CLOCK GENERATORS  *
- **********************/
+/***********
+ *  CLOCK  *
+ ***********/
 
-// clk---->[clk/freq_divisor]---->uart_clock
-//
-// N.B.: freq_divisor should account for making uart_clock 16x faster than baud
-// rate, so uart_clock / 16 can give the correct tx and rx freq. This is
-// specially useful on RX code because we use a 8 uart_clock delay to sample
-// right in the middle of receiving signal.
+// "uart_clock" : 9600 (default)
 always @ (posedge clk) begin
-  if (reset == HIGH) begin
-    freq_counter <= 0;
-  end
-  else begin
-    if (freq_counter == freq_divider) begin
-      uart_clock <= HIGH;
-      freq_counter <= 0;
-    end
-    else begin
-      uart_clock <= LOW;
-      freq_counter <= freq_counter + 1;
-    end
-  end
-end
-
-// "tx_clock" : 9600 OK
-always @ (posedge clk) begin
-  if (tx_clock_counter == (freq_divider - 1)) begin
-    tx_clock <= 1;
-    tx_clock_counter <= 0;
+  if (uart_clock_counter == (freq_divider - 1)) begin
+    uart_clock <= 1;
+    uart_clock_counter <= 0;
   end else begin
-    tx_clock <= 0;
-    tx_clock_counter <= tx_clock_counter + 1'b1;
+    uart_clock <= 0;
+    uart_clock_counter <= uart_clock_counter + 1'b1;
   end
 end
-
-// "rx_clock" : 9600 OK
-always @ (posedge clk) begin
-  if (rx_clock_counter == (1250 - 1)) begin
-    rx_clock <= 1;
-    rx_clock_counter <= 0;
-  end
-  else begin
-    rx_clock <= 0;
-    rx_clock_counter <= rx_clock_counter + 1'b1;
-  end
- end
 
 endmodule
